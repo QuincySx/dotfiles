@@ -1,0 +1,44 @@
+#放行 Github
+github.com
+*.github.com
+*.github.dev
+*.github.io
+*.githubusercontent.com
+#放行 cloudflare
+cloudflare-dns.com
+*.cloudflare-dns.com
+*.cloudflare.com
+#放行 Okex
++.ouyicn.top
++.okx.com
++.okx-dv.net
+#放行 OpenAi
++.openai.com
+#放行 TradingView
+tradingview.com
+#放行 Game
+api1.origin.com
+*.battle.net
+*.blizzard.com
+*.rangeplayground.com
+#放行 Steam
+*.steamstatic.com
+*.steamcommunity.com
+*.steampowered.com
+*.steamserver.net
+*.steam-chat.com
+#放行 rengwuxian
+*.rengwuxian.com
+#放行 bing
+*.bing.com
+#放行Google Play
+*.xn--ngstr-lra8j.com
+#放行 stackoverflow
+stackoverflow.com
+*.stackoverflow.com
+#放行PWC
+*.awmdm.com
+*.blackspider.com
+*.pwc.com
+*.pwcinternal.com
+*.pwczhongtian.cn

@@ -23,19 +23,33 @@ def get_fake_ip_filter_format(url):
         return None
 
 # 写文件到本地 fake_ip_filter_domains.list
-def write_fake_ip_filter_format_to_file(url):
+def write_fake_ip_filter_format_to_file(url):    
     fake_ip_filter_format = get_fake_ip_filter_format(url)
     if fake_ip_filter_format:
-        os.makedirs("metadata", exist_ok=True)
+        "https://raw.githubusercontent.com/vernesong/OpenClash/master/luci-app-openclash/root/etc/openclash/custom/openclash_custom_fake_filter.list"
 
-        with open(os.path.join("metadata", "fake_ip_filter_domains.list"), "w") as file:
+        with open("fake_ip_filter.list", "r") as file:
+            content = file.readlines()
+
+        with open(os.path.join("metadata", "fake_ip_filter_domains.list"), "a+") as file:
+            file.write(content)
             file.write(fake_ip_filter_format)
     else:
         print("Error: Unable to fetch or process the URL content.")
+
+def write_fake_ip_filter_with_openClash():
+    response = requests.get("https://raw.githubusercontent.com/vernesong/OpenClash/master/luci-app-openclash/root/etc/openclash/custom/openclash_custom_fake_filter.list")
+    if response.status_code == 200:
+        filepath = os.path.join("metadata", "fake_ip_filter_domains.list")
+        with open(filepath, "wb") as file:
+            file.write(response.content)
 
 
 if __name__ == "__main__":
     url = "https://raw.githubusercontent.com/ACL4SSR/ACL4SSR/master/Clash/ChinaDomain.list"
 
+    os.makedirs("metadata", exist_ok=True)
+
+    write_fake_ip_filter_with_openClash()
     write_fake_ip_filter_format_to_file(url)
 
