@@ -1,0 +1,52 @@
+name: Generate Rules
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * 1'
+  push:
+    branches:
+      - master
+
+jobs:
+  combined-job:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout master branch
+        uses: actions/checkout@v3
+        with:
+          ref: master
+
+      - name: Set up Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: 3.x
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests
+
+      - name: Checkout metadata branch
+        uses: actions/checkout@v3
+        with:
+          ref: metadata
+          clean: false
+          path: metadata
+
+      - name: Parse and download metadata
+        run: |
+          python ./scripts/parse_online_full.py
+
+      - name: Generate fake_ip_filter
+        run: |
+          python ./scripts/generate_fake_ip_filter.py
+
+      - name: Commit and push changes
+        run: |
+          cd metadata
+          CURRENT_TIME=$(date '+%Y-%m-%d %H:%M:%S')
+          git config --local user.email "13297229+QuincySx@users.noreply.github.com"
+          git config --local user.name "GitHub Action"
+          git add .
+          git diff --cached --quiet || git commit -m "Update rules at $CURRENT_TIME" && git push --set-upstream origin metadata
