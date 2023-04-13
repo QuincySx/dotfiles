@@ -1,55 +1,68 @@
 import os
 import requests
 
-# 提取 DOMAIN、DOMAIN-SUFFIX 类型的域名，不要 DOMAIN-KEYWORD 等其他的。
 def allowed_domain_type(line):
-    domain_type = line.split(',')[0]
-    return domain_type == "DOMAIN" or domain_type == "DOMAIN-SUFFIX"
+    try:
+        domain_type, domain = line.split(',')
+        return (domain_type == "DOMAIN" or domain_type == "DOMAIN-SUFFIX") and domain != "cn"
+    except:
+        return False
 
-def get_fake_ip_filter_format(url):
+def get_fake_ip_filter_format():
+    url = "https://raw.githubusercontent.com/ACL4SSR/ACL4SSR/master/Clash/ChinaDomain.list"
     response = requests.get(url)
     if response.status_code == 200:
-        input_text = response.text
+        lines = response.text.strip().split('\n')
+        return [f"+.{line.split(',')[1]}" for line in lines if allowed_domain_type(line)]
+    return []
 
-        # 提取适用于 fake-ip-filter 的域名
-        lines = input_text.strip().split('\n')
-        fake_ip_filter_domains = [line.split(',')[1] for line in lines if allowed_domain_type(line)]
-
-        # 转换为适用于 fake-ip-filter 的格式，不带空格和'-'，在域名前加上'+.'
-        fake_ip_filter_format = "\n".join(["+.{}".format(domain) for domain in fake_ip_filter_domains])
-
-        return fake_ip_filter_format
-    else:
-        return None
-
-# 写文件到本地 fake_ip_filter_domains.list
-def write_fake_ip_filter_format_to_file(url):    
-    fake_ip_filter_format = get_fake_ip_filter_format(url)
-    if fake_ip_filter_format:
-        "https://raw.githubusercontent.com/vernesong/OpenClash/master/luci-app-openclash/root/etc/openclash/custom/openclash_custom_fake_filter.list"
-
-        with open("fake_ip_filter.list", "r") as file:
-            content = file.readlines()
-
-        with open(os.path.join("metadata", "fake_ip_filter_domains.list"), "a+") as file:
-            file.write(content)
-            file.write(fake_ip_filter_format)
-    else:
-        print("Error: Unable to fetch or process the URL content.")
-
-def write_fake_ip_filter_with_openClash():
-    response = requests.get("https://raw.githubusercontent.com/vernesong/OpenClash/master/luci-app-openclash/root/etc/openclash/custom/openclash_custom_fake_filter.list")
+def get_openclash_fake_ip_filter():
+    url = "https://raw.githubusercontent.com/vernesong/OpenClash/master/luci-app-openclash/root/etc/openclash/custom/openclash_custom_fake_filter.list"
+    response = requests.get(url)
     if response.status_code == 200:
-        filepath = os.path.join("metadata", "fake_ip_filter_domains.list")
-        with open(filepath, "wb") as file:
-            file.write(response.content)
+        return [line for line in response.text.strip().split('\n')]
+    return []
+
+def read_custom_fake_ip_filter(file_path):
+    with open(file_path, "r") as file:
+        return [line.strip() for line in file.readlines()]
+
+def format_yaml_domain_list(domain_list):
+    return [f'"{domain}"' if domain.startswith("*.") or domain.startswith("+.") else domain for domain in domain_list if not domain.startswith("#")]
+
+def write_yaml_content(domain_list, file_path):
+    format_domain_list = format_yaml_domain_list(domain_list)
+
+    content = "fake-ip-filter:\n"
+    content += "\n".join([f'  - {domain}' for domain in format_domain_list])
+    with open(file_path, "w") as file:
+        file.write(content)
+
+def write_list_content(domain_list, file_path):
+    content = "\n".join([f"{domain}" for domain in domain_list])
+    with open(file_path, "w") as file:
+        file.write(content)
+
+def main():
+    openclash_domains = get_openclash_fake_ip_filter()
+    custom_domains = read_custom_fake_ip_filter("fake_ip_filter.list")
+    chain_domains = get_fake_ip_filter_format()
+    
+    # Sanity check
+    if(type(openclash_domains) != list or type(custom_domains) != list or type(chain_domains) != list):
+        print("Error: one of the domain lists is not a list")
+        return
+
+    os.makedirs("metadata", exist_ok=True)
+ 
+    full_domains = openclash_domains + chain_domains + custom_domains
+    lite_domains = openclash_domains + custom_domains
+
+    write_yaml_content(full_domains, os.path.join("metadata", "fake_ip_filter_domains.yaml"))
+
+    write_list_content(full_domains, os.path.join("metadata", "fake_ip_filter_domains.list"))
+    write_list_content(lite_domains, os.path.join("metadata", "fake_ip_filter_domains_lite.list"))
 
 
 if __name__ == "__main__":
-    url = "https://raw.githubusercontent.com/ACL4SSR/ACL4SSR/master/Clash/ChinaDomain.list"
-
-    os.makedirs("metadata", exist_ok=True)
-
-    write_fake_ip_filter_with_openClash()
-    write_fake_ip_filter_format_to_file(url)
-
+    main()
