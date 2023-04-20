@@ -8,8 +8,16 @@ def allowed_domain_type(line):
     except:
         return False
 
-def get_fake_ip_filter_format():
+def get_acl4ssr_china_fake_ip_filter():
     url = "https://raw.githubusercontent.com/ACL4SSR/ACL4SSR/master/Clash/ChinaDomain.list"
+    response = requests.get(url)
+    if response.status_code == 200:
+        lines = response.text.strip().split('\n')
+        return [f"+.{line.split(',')[1]}" for line in lines if allowed_domain_type(line)]
+    return []
+
+def get_custom_fake_ip_filter():
+    url = "https://raw.githubusercontent.com/QuincySx/CustomRules/metadata/rules/Ac-custom-direct.list"
     response = requests.get(url)
     if response.status_code == 200:
         lines = response.text.strip().split('\n')
@@ -46,7 +54,8 @@ def write_list_content(domain_list, file_path):
 def main():
     openclash_domains = get_openclash_fake_ip_filter()
     custom_domains = read_custom_fake_ip_filter(os.path.join("clash", "fake_ip_filter.list"))
-    chain_domains = get_fake_ip_filter_format()
+    chain_domains = get_acl4ssr_china_fake_ip_filter()
+    custom_chain_domains = get_custom_fake_ip_filter()
     
     # Sanity check
     if(type(openclash_domains) != list or type(custom_domains) != list or type(chain_domains) != list):
@@ -55,8 +64,8 @@ def main():
 
     os.makedirs("metadata/clash", exist_ok=True)
  
-    full_domains = openclash_domains + chain_domains + custom_domains
-    lite_domains = custom_domains
+    full_domains = openclash_domains + custom_chain_domains + chain_domains + custom_domains
+    lite_domains = openclash_domains + custom_chain_domains + custom_domains
 
     write_yaml_content(full_domains, os.path.join("metadata/clash", "fake_ip_filter_domains.yaml"))
 
