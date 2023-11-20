@@ -1,32 +1,36 @@
 {
-"urls": [
-{
-"url": "http://小白.love",
-"name": "🐱肥猫Panda🐱"
-},
-{
-"url": "http://yydsys.top/duo",
-"name": "🆔应用多多"
-},
-{
-"url": "http://饭太硬.top/tv",
-"name": "🍚饭太硬🍚"
-},
-{
-"url": "https://pastebin.com/raw/5NHaxyGR",
-"name": "🛞道长线路🛞"
-},
-{
-"url": "http://xhww.fun:63/小米/DEMO.json",
-"name": "🌾小米线路🌾"
-},
-{
-"url": "https://tvbox.cainisi.cf",
-"name": "🍆菜妮丝🍆"
-},
-{
-"url": "https://yydsys.top/duo/ali",
-"name": "💹阿里多多💹"
-}
-]
+    "urls": [
+        {
+            "url": "http://小白.love",
+            "name": "🐱肥猫Panda🐱"
+        },
+        {
+            "url": "http://yydsys.top/duo",
+            "name": "🆔应用多多"
+        },
+        {
+            "url": "http://饭太硬.top/tv",
+            "name": "🍚饭太硬🍚"
+        },
+        {
+            "url": "https://pastebin.com/raw/5NHaxyGR",
+            "name": "🛞道长线路🛞"
+        },
+        {
+            "url": "http://xhww.fun:63/小米/DEMO.json",
+            "name": "🌾小米线路🌾"
+        },
+        {
+            "url": "https://tvbox.cainisi.cf",
+            "name": "🍆菜妮丝🍆"
+        },
+        {
+            "url": "https://yydsys.top/duo/ali",
+            "name": "💹阿里多多💹"
+        },
+        {
+            "url": "https://神器每日推送.tk/pz.json",
+            "name": "📿阿里多多📿"
+        }
+    ]
 }
