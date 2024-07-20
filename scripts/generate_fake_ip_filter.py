@@ -53,17 +53,17 @@ def write_list_content(domain_list, file_path):
 
 def main():
     openclash_domains = get_openclash_fake_ip_filter()
-    custom_domains = read_custom_fake_ip_filter(os.path.join("clash", "fake_ip_filter.list"))
+    custom_domains = read_custom_fake_ip_filter(os.path.join("fakeIp", "fake_ip_filter.list"))
     chain_domains = get_acl4ssr_china_fake_ip_filter()
     custom_chain_domains = get_custom_fake_ip_filter()
-    
+
     # Sanity check
     if(type(openclash_domains) != list or type(custom_domains) != list or type(chain_domains) != list):
         print("Error: one of the domain lists is not a list")
         return
 
     os.makedirs("metadata/clash", exist_ok=True)
- 
+
     full_domains = openclash_domains + custom_chain_domains + chain_domains + custom_domains
     lite_domains = openclash_domains + custom_chain_domains + custom_domains
 

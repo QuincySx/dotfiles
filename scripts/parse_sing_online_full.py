@@ -108,5 +108,5 @@ def process_ac_files(directory, output_dir='.'):
 
 
 if __name__ == "__main__":
-    backup_rule_set_and_download("singbox_config_template.json", "metadata/sing")
+    backup_rule_set_and_download("sing_config_template.json", "metadata/sing")
     process_ac_files("metadata/rules", "metadata/sing/rules")
