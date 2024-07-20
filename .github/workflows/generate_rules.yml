@@ -46,6 +46,10 @@ jobs:
         run: |
           python ./scripts/backup_online_full.py
 
+      - name: Backup Sing_Online_Full.ini
+        run: |
+          python ./scripts/parse_singbox_online_full.py
+
       - name: Commit and push changes
         run: |
           cd metadata
