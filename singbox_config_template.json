@@ -58,7 +58,7 @@
         "server": "proxyDns"
       },
       {
-        "rule_set": ["geosite-cn"],
+        "rule_set": ["ac-china", "geosite-cn"],
         "server": "localDns"
       }
     ],
@@ -540,6 +540,10 @@
         "outbound": "dns-out"
       },
       {
+        "rule_set": ["ac-privacy-ban", "ac-scam-ban"],
+        "outbound": "🍃 应用净化分流"
+      },
+      {
         "rule_set": "geosite-category-ads-all",
         "outbound": "🛑 广告分流"
       },
@@ -565,22 +569,19 @@
         "outbound": "direct-out"
       },
       {
-        "domain": [
-          "stripe.com",
-          "oaistatic.com",
-          "oaiusercontent.com",
-          "cdn.usefathom.com",
-          "anthropic.com",
-          "claude.ai"
-        ],
+        "rule_set": ["ac-openai", "geosite-openai"],
         "outbound": "🤖 GPT分流"
       },
       {
-        "rule_set": "geosite-openai",
-        "outbound": "🤖 GPT分流"
+        "rule_set": ["ac-china", "ac-custom-direct"],
+        "outbound": "direct-out"
       },
       {
-        "rule_set": ["geosite-github"],
+        "rule_set": ["ac-exchange", "geosite-category-cryptocurrency"],
+        "outbound": "🏦 交易所分流"
+      },
+      {
+        "rule_set": ["ac-blog-proxy", "ac-custom-proxy", "geosite-github"],
         "outbound": "🚀 手选节点"
       },
       {
@@ -616,23 +617,19 @@
         "outbound": "Ⓜ️ 服务分流"
       },
       {
-        "domain": [
-          "prod.dl.playstation.net",
-          "cdn.ubi.com",
-          "ssl-lvlt.cdn.ea.com"
-        ],
+        "rule_set": ["ac-game-download"],
         "outbound": "🎮 下载分流"
       },
       {
-        "domain": ["steamserver.net"],
+        "rule_set": ["ac-steam-cn", "geosite-games-cn"],
         "outbound": "🎮 直连分流"
       },
       {
-        "rule_set": ["geosite-games-cn"],
-        "outbound": "🎮 直连分流"
-      },
-      {
-        "rule_set": ["geosite-category-games"],
+        "rule_set": [
+          "ac-xbox-proxy",
+          "ac-nintendo-proxy",
+          "geosite-category-games"
+        ],
         "outbound": "🎮 分流"
       },
       {
@@ -645,6 +642,90 @@
       }
     ],
     "rule_set": [
+      {
+        "tag": "ac-blog-proxy",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://testingcf.jsdelivr.net/gh/QuincySx/CustomRules@metadata/sing/rules/Ac-blog-proxy.srs",
+        "download_detour": "direct-out"
+      },
+      {
+        "tag": "ac-openai",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://testingcf.jsdelivr.net/gh/QuincySx/CustomRules@metadata/sing/rules/Ac-chat-proxy.srs",
+        "download_detour": "direct-out"
+      },
+      {
+        "tag": "ac-china",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://testingcf.jsdelivr.net/gh/QuincySx/CustomRules@metadata/sing/rules/Ac-china.srs",
+        "download_detour": "direct-out"
+      },
+      {
+        "tag": "ac-custom-direct",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://testingcf.jsdelivr.net/gh/QuincySx/CustomRules@metadata/sing/rules/Ac-custom-direct.srs",
+        "download_detour": "direct-out"
+      },
+      {
+        "tag": "ac-custom-proxy",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://testingcf.jsdelivr.net/gh/QuincySx/CustomRules@metadata/sing/rules/Ac-custom-proxy.srs",
+        "download_detour": "direct-out"
+      },
+      {
+        "tag": "ac-exchange",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://testingcf.jsdelivr.net/gh/QuincySx/CustomRules@metadata/sing/rules/Ac-exchange.srs",
+        "download_detour": "direct-out"
+      },
+      {
+        "tag": "ac-game-download",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://testingcf.jsdelivr.net/gh/QuincySx/CustomRules@metadata/sing/rules/Ac-game-download.srs",
+        "download_detour": "direct-out"
+      },
+      {
+        "tag": "ac-nintendo-proxy",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://testingcf.jsdelivr.net/gh/QuincySx/CustomRules@metadata/sing/rules/Ac-nintendo-proxy.srs",
+        "download_detour": "direct-out"
+      },
+      {
+        "tag": "ac-privacy-ban",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://testingcf.jsdelivr.net/gh/QuincySx/CustomRules@metadata/sing/rules/Ac-privacy-ban.srs",
+        "download_detour": "direct-out"
+      },
+      {
+        "tag": "ac-scam-ban",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://testingcf.jsdelivr.net/gh/QuincySx/CustomRules@metadata/sing/rules/Ac-scam-ban.srs",
+        "download_detour": "direct-out"
+      },
+      {
+        "tag": "ac-steam-cn",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://testingcf.jsdelivr.net/gh/QuincySx/CustomRules@metadata/sing/rules/Ac-steam-cn.srs",
+        "download_detour": "direct-out"
+      },
+      {
+        "tag": "ac-xbox-proxy",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://testingcf.jsdelivr.net/gh/QuincySx/CustomRules@metadata/sing/rules/Ac-xbox-proxy.srs",
+        "download_detour": "direct-out"
+      },
       {
         "tag": "geosite-category-ads-all",
         "type": "remote",
@@ -741,6 +822,13 @@
         "type": "remote",
         "format": "binary",
         "url": "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@sing/geo/geosite/category-games.srs",
+        "download_detour": "direct-out"
+      },
+      {
+        "tag": "geosite-category-cryptocurrency",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@sing/geo/geosite/category-cryptocurrency.srs",
         "download_detour": "direct-out"
       },
       {

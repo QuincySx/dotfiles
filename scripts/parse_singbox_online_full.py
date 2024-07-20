@@ -2,6 +2,8 @@ import os
 import re
 import requests
 import json
+import tarfile
+import subprocess
 
 def backup_rule_set_and_download(input_file, output_dir='.'):
     # Read the input JSON file
@@ -56,22 +58,53 @@ def convert_list_to_json(file_path):
     if current_rule:
         rules.append(current_rule)
 
-    return {"rules": rules, "version": 2}
+    return {"rules": rules, "version": 1}
+
+
+def download_file(url, filename):
+    response = requests.get(url, stream=True)
+    with open(filename, 'wb') as file:
+        for chunk in response.iter_content(chunk_size=8192):
+            file.write(chunk)
 
 
 def process_ac_files(directory, output_dir='.'):
+    # Download sing-box
+    sing_box_url = "https://github.com/SagerNet/sing-box/releases/download/v1.9.3/sing-box-1.9.3-linux-amd64.tar.gz"
+    tar_filename = "sing-box-1.9.3-linux-amd64.tar.gz"
+    download_file(sing_box_url, tar_filename)
+       # Extract sing-box
+    with tarfile.open(tar_filename, "r:gz") as tar:
+        tar.extractall()
+    os.chmod("./sing-box-1.9.3-linux-amd64/sing-box", 0o755)
+
     for filename in os.listdir(directory):
         if filename.startswith('Ac-') and filename.endswith('.list'):
             file_path = os.path.join(directory, filename)
             json_data = convert_list_to_json(file_path)
 
-            output_filename = f"{os.path.splitext(filename)[0]}.json"
-            output_path = os.path.join(output_dir, output_filename)
+            json_filename = f"{os.path.splitext(filename)[0]}.json"
+            json_path = os.path.join(output_dir, json_filename)
 
-            with open(output_path, 'w') as f:
+            with open(json_path, 'w') as f:
                 json.dump(json_data, f, indent=2)
 
-            print(f"Converted {filename} to JSON: {output_filename}")
+            # Compile JSON to SRS using sing-box
+            srs_filename = f"{os.path.splitext(filename)[0]}.srs"
+            srs_path = os.path.join(output_dir, srs_filename)
+
+            try:
+                subprocess.run([
+                    "./sing-box-1.9.3-linux-amd64/sing-box",
+                    "rule-set",
+                    "compile",
+                    "--output",
+                    srs_path,
+                    json_path
+                ], check=True)
+                print(f"Compiled {json_filename} to SRS: {srs_filename}")
+            except subprocess.CalledProcessError as e:
+                print(f"Error compiling {json_filename}: {e}")
 
 
 if __name__ == "__main__":
