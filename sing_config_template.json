@@ -260,7 +260,7 @@
       "default": "🚀 手选节点"
     },
     {
-      "tag": "🍎 大陆分流",
+      "tag": "🍎 代理分流",
       "type": "selector",
       "outbounds": [
         "🚀 手选节点",
@@ -274,7 +274,7 @@
         "🇺🇳 其他节点",
         "direct-out"
       ],
-      "default": "direct-out"
+      "default": "🚀 手选节点"
     },
     {
       "tag": "🍎 服务分流",
@@ -291,7 +291,7 @@
         "🇺🇳 其他节点",
         "direct-out"
       ],
-      "default": "🚀 手选节点"
+      "default": "direct-out"
     },
     {
       "tag": "🎮 下载分流",
@@ -600,8 +600,8 @@
         "outbound": "🎥 Disney分流"
       },
       {
-        "rule_set": ["geosite-apple-cn"],
-        "outbound": "🍎 大陆分流"
+        "rule_set": ["geosite-apple-proxy"],
+        "outbound": "🍎 代理分流"
       },
       {
         "rule_set": ["geoip-apple", "geosite-apple"],
@@ -796,10 +796,10 @@
         "download_detour": "direct-out"
       },
       {
-        "tag": "geosite-apple-cn",
+        "tag": "geosite-apple-proxy",
         "type": "remote",
         "format": "binary",
-        "url": "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@sing/geo/geosite/apple-cn.srs",
+        "url": "https://testingcf.jsdelivr.net/gh/QuincySx/CustomRules@metadata/sing/rules/Ac-apple-proxy.srs",
         "download_detour": "direct-out"
       },
       {
