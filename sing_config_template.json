@@ -736,7 +736,7 @@
         "tag": "geosite-openai",
         "type": "remote",
         "format": "source",
-        "url": "https://testingcf.jsdelivr.net/gh/Toperlock/sing-box-geosite@main/rule/OpenAI.json",
+        "url": "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@sing/geo/geosite/openai.srs",
         "download_detour": "direct-out"
       },
       {
