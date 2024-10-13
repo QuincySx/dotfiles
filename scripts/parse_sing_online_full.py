@@ -5,6 +5,95 @@ import json
 import tarfile
 import subprocess
 
+sing_box_version="1.10.0-beta.12"
+# sing_box_name = f"sing-box-{sing_box_version}-linux-amd64"
+sing_box_name = f"sing-box-{sing_box_version}-darwin-arm64"
+
+def download_file(url, filename):
+    response = requests.get(url, stream=True)
+    with open(filename, 'wb') as file:
+        for chunk in response.iter_content(chunk_size=8192):
+            file.write(chunk)
+
+
+def download_convert_bin():
+    # Download sing-box
+    tar_filename = f"{sing_box_name}.tar.gz"
+    sing_box_url = f"https://github.com/SagerNet/sing-box/releases/download/v{sing_box_version}/{tar_filename}"
+
+    download_file(sing_box_url, tar_filename)
+    # Extract sing-box
+    with tarfile.open(tar_filename, "r:gz") as tar:
+        tar.extractall()
+    os.chmod(f"./{sing_box_name}/sing-box", 0o755)
+
+
+def process_json_to_srs(srs_path, json_path):
+    try:
+        subprocess.run([
+            f"./{sing_box_name}/sing-box",
+            "rule-set",
+            "compile",
+            "--output",
+            srs_path,
+            json_path
+        ], check=True)
+        print(f"Compiled {json_path} to SRS: {srs_path}")
+    except subprocess.CalledProcessError as e:
+        print(f"Error compiling {json_path}: {e}")
+
+
+def download_and_convert_rule(url, rules_dir):
+    try:
+        response = requests.get(url)
+        if response.status_code == 200:
+            filename = url.split("/")[-1]
+            base_name, ext = os.path.splitext(filename)
+
+            # 确定保存路径
+            category = url.split('/')[-2]
+            if 'geosite' in category or 'domainset' in category or 'geoip' in category:
+                save_dir = os.path.join(rules_dir, category)
+                os.makedirs(save_dir, exist_ok=True)
+                filepath = os.path.join(save_dir, filename)
+            else:
+                filepath = os.path.join(rules_dir, filename)
+
+            if ext.lower() == '.srs':
+                json_url = url.rsplit('.', 1)[0] + '.json'
+                json_response = requests.get(json_url)
+
+                if json_response.status_code == 200:
+                    rule_data = json_response.json()
+                    rule_data['version'] = 2
+
+                    # 保存 JSON 文件
+                    json_filepath = filepath.rsplit('.', 1)[0] + '.json'
+                    srs_filepath = filepath.rsplit('.', 1)[0] + '.srs'
+                    with open(json_filepath, 'w') as json_file:
+                        json.dump(rule_data, json_file, indent=2)
+                    print(f"成功保存 JSON 文件: {json_filepath}")
+
+                    # 将 JSON 转换为 SRS
+                    process_json_to_srs(srs_filepath, json_filepath)
+                    print(f"成功将 JSON 转换为 SRS: {srs_filepath}")
+                else:
+                    print(f"下载 JSON 时出错 {json_url}: {json_response.status_code}")
+                    # 如果 JSON 下载失败，则保存原始 SRS 文件
+                    with open(filepath, "wb") as file:
+                        file.write(response.content)
+                    print(f"保存原始 SRS 文件: {filepath}")
+            else:
+                # 对于非 SRS 文件，直接保存
+                with open(filepath, "wb") as file:
+                    file.write(response.content)
+                print(f"成功下载并保存文件: {filepath}")
+        else:
+            print(f"下载 {url} 时出错: {response.status_code}")
+    except requests.RequestException as e:
+        print(f"下载 {url} 时出错: {str(e)}")
+
+
 def backup_rule_set_and_download(input_file, output_dir='.'):
     # Read the input JSON file
     with open(input_file, 'r') as f:
@@ -22,14 +111,10 @@ def backup_rule_set_and_download(input_file, output_dir='.'):
         url = rule.get('url')
         if url:
             try:
-                response = requests.get(url)
-                if response.status_code == 200:
-                    filename = url.split("/")[-1]
-                    filepath = os.path.join(rules_dir, filename)
-                    with open(filepath, "wb") as file:
-                        file.write(response.content)
-                else:
-                    print(f"Error downloading {url}: {response.status_code}")
+                # filter AC-*.srs
+                if not url.split('/')[-1].startswith('Ac-') and url.split('/')[-1].endswith('.srs'):
+                    print(f"Downloading {url}")
+                    download_and_convert_rule(url, rules_dir)
             except requests.RequestException as e:
                 print(f"Error downloading {url}: {str(e)}")
 
@@ -58,26 +143,10 @@ def convert_list_to_json(file_path):
     if current_rule:
         rules.append(current_rule)
 
-    return {"rules": rules, "version": 1}
-
-
-def download_file(url, filename):
-    response = requests.get(url, stream=True)
-    with open(filename, 'wb') as file:
-        for chunk in response.iter_content(chunk_size=8192):
-            file.write(chunk)
+    return {"rules": rules, "version": 2}
 
 
 def process_ac_files(directory, output_dir='.'):
-    # Download sing-box
-    sing_box_url = "https://github.com/SagerNet/sing-box/releases/download/v1.9.3/sing-box-1.9.3-linux-amd64.tar.gz"
-    tar_filename = "sing-box-1.9.3-linux-amd64.tar.gz"
-    download_file(sing_box_url, tar_filename)
-       # Extract sing-box
-    with tarfile.open(tar_filename, "r:gz") as tar:
-        tar.extractall()
-    os.chmod("./sing-box-1.9.3-linux-amd64/sing-box", 0o755)
-
     for filename in os.listdir(directory):
         if filename.startswith('Ac-') and filename.endswith('.list'):
             file_path = os.path.join(directory, filename)
@@ -93,20 +162,10 @@ def process_ac_files(directory, output_dir='.'):
             srs_filename = f"{os.path.splitext(filename)[0]}.srs"
             srs_path = os.path.join(output_dir, srs_filename)
 
-            try:
-                subprocess.run([
-                    "./sing-box-1.9.3-linux-amd64/sing-box",
-                    "rule-set",
-                    "compile",
-                    "--output",
-                    srs_path,
-                    json_path
-                ], check=True)
-                print(f"Compiled {json_filename} to SRS: {srs_filename}")
-            except subprocess.CalledProcessError as e:
-                print(f"Error compiling {json_filename}: {e}")
+            process_json_to_srs(srs_path, json_path)
 
 
 if __name__ == "__main__":
+    download_convert_bin()
     backup_rule_set_and_download("sing_config_template.json", "metadata/sing")
     process_ac_files("metadata/rules", "metadata/sing/rules")
