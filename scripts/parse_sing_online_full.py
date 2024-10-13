@@ -6,8 +6,8 @@ import tarfile
 import subprocess
 
 sing_box_version="1.10.0-beta.12"
-# sing_box_name = f"sing-box-{sing_box_version}-linux-amd64"
-sing_box_name = f"sing-box-{sing_box_version}-darwin-arm64"
+sing_box_name = f"sing-box-{sing_box_version}-linux-amd64"
+# sing_box_name = f"sing-box-{sing_box_version}-darwin-arm64"
 
 def download_file(url, filename):
     response = requests.get(url, stream=True)
