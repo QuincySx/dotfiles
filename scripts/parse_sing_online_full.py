@@ -71,23 +71,25 @@ def download_and_convert_rule(url, rules_dir):
                     json_filepath = filepath.rsplit('.', 1)[0] + '.json'
                     srs_filepath = filepath.rsplit('.', 1)[0] + '.srs'
                     with open(json_filepath, 'w') as json_file:
-                        json.dump(rule_data, json_file, indent=2)
-                    print(f"成功保存 JSON 文件: {json_filepath}")
+                        json.dump(rule_data, json_file, indent=2, ensure_ascii=False)
 
                     # 将 JSON 转换为 SRS
                     process_json_to_srs(srs_filepath, json_filepath)
                     print(f"成功将 JSON 转换为 SRS: {srs_filepath}")
+                    return srs_filepath;
                 else:
                     print(f"下载 JSON 时出错 {json_url}: {json_response.status_code}")
                     # 如果 JSON 下载失败，则保存原始 SRS 文件
                     with open(filepath, "wb") as file:
                         file.write(response.content)
                     print(f"保存原始 SRS 文件: {filepath}")
+                    return filepath;
             else:
                 # 对于非 SRS 文件，直接保存
                 with open(filepath, "wb") as file:
                     file.write(response.content)
                 print(f"成功下载并保存文件: {filepath}")
+                return filepath;
         else:
             print(f"下载 {url} 时出错: {response.status_code}")
     except requests.RequestException as e:
@@ -96,7 +98,7 @@ def download_and_convert_rule(url, rules_dir):
 
 def backup_rule_set_and_download(input_file, output_dir='.'):
     # Read the input JSON file
-    with open(input_file, 'r') as f:
+    with open(input_file, 'r', encoding='utf-8') as f:
         data = json.load(f)
 
     # Extract the rule_set from the route
@@ -107,16 +109,32 @@ def backup_rule_set_and_download(input_file, output_dir='.'):
     os.makedirs(rules_dir, exist_ok=True)
 
     # Download and save rule content
+    new_rule_set = []
     for rule in rule_set:
         url = rule.get('url')
         if url:
             try:
+                new_filepath = url
+                rule['url'] = new_filepath
+
                 # filter AC-*.srs
                 if not url.split('/')[-1].startswith('Ac-') and url.split('/')[-1].endswith('.srs'):
-                    print(f"Downloading {url}")
-                    download_and_convert_rule(url, rules_dir)
+                    new_filepath = download_and_convert_rule(url, rules_dir)
+                    rule['url'] = f"https://testingcf.jsdelivr.net/gh/QuincySx/CustomRules@{new_filepath}"
+
+                if new_filepath != None:
+                    if(new_filepath.endswith('.srs')):
+                        rule['format'] = 'binary'
+                    else:
+                        rule['format'] = 'source'
+                    new_rule_set.append(rule)
             except requests.RequestException as e:
                 print(f"Error downloading {url}: {str(e)}")
+
+    data['route']['rule_set'] = new_rule_set
+
+    with open(os.path.join(output_dir, 'sing_config_template_backup.json'), 'w', encoding='utf-8') as f:
+        json.dump(data, f, indent=2, ensure_ascii=False)
 
 
 def convert_list_to_json(file_path):
@@ -155,8 +173,8 @@ def process_ac_files(directory, output_dir='.'):
             json_filename = f"{os.path.splitext(filename)[0]}.json"
             json_path = os.path.join(output_dir, json_filename)
 
-            with open(json_path, 'w') as f:
-                json.dump(json_data, f, indent=2)
+            with open(json_path, 'w', encoding='utf-8') as f:
+                json.dump(json_data, f, indent=2, ensure_ascii=False)
 
             # Compile JSON to SRS using sing-box
             srs_filename = f"{os.path.splitext(filename)[0]}.srs"
@@ -167,5 +185,5 @@ def process_ac_files(directory, output_dir='.'):
 
 if __name__ == "__main__":
     download_convert_bin()
-    backup_rule_set_and_download("sing_config_template.json", "metadata/sing")
     process_ac_files("metadata/rules", "metadata/sing/rules")
+    backup_rule_set_and_download("sing_config_template.json", "metadata/sing")
