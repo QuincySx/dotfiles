@@ -21,14 +21,6 @@
   "dns": {
     "servers": [
       {
-        "tag": "subnetProxyDns",
-        "address": "https://dns.google/dns-query",
-        "address_resolver": "resolverDns",
-        "address_strategy": "ipv4_only",
-        "strategy": "ipv4_only",
-        "client_subnet": "221.130.33.60/24"
-      },
-      {
         "tag": "proxyDns",
         "address": "https://dns.google/dns-query",
         "address_resolver": "resolverDns",
@@ -37,7 +29,7 @@
       },
       {
         "tag": "localDns",
-        "address": "192.168.1.1",
+        "address": "https://223.5.5.5/dns-query",
         "strategy": "prefer_ipv4",
         "detour": "direct-out"
       },
@@ -53,44 +45,42 @@
     ],
     "rules": [
       {
-        "outbound": ["any"],
-        "server": "resolverDns",
-        "disable_cache": true
-      },
-      {
-        "clash_mode": "direct",
-        "outbound": ["direct-out"],
-        "server": "localDns"
-      },
-      {
-        "clash_mode": "global",
-        "server": "proxyDns"
+        "outbound": "any",
+        "server": "resolverDns"
       },
       {
         "rule_set": [
           "ac-china",
-          "geosite-cn",
-          "geosite-geolocation-cn"
+          "geosite-cn"
         ],
         "server": "localDns"
       },
       {
-        "rule_set": [
-          "geosite-gfw"
+        "type": "logical",
+        "mode": "and",
+        "rules": [
+          {
+            "rule_set": "geosite-geolocation-!cn",
+            "invert": true
+          },
+          {
+            "rule_set": "geoip-cn"
+          }
         ],
-        "server": "proxyDns"
+        "server": "proxyDns",
+        "client_subnet": "221.130.33.60/24"
       }
     ],
     "disable_cache": false,
     "disable_expire": false,
     "independent_cache": false,
-    "final": "subnetProxyDns"
+    "final": "proxyDns"
   },
   "inbounds": [
     {
       "type": "tun",
       "tag": "tun-in",
-      "interface_name": "utun",
+      "interface_name": "sing-box-utun",
       "inet4_address": ["172.19.0.1/30"],
       "inet6_address": ["fdfe:dcba:9876::1/126"],
       "mtu": 8000,
@@ -105,15 +95,9 @@
       "sniff_override_destination": true,
       "endpoint_independent_nat": false,
       "route_exclude_address": [
-        "0.0.0.0/8",
-        "10.0.0.0/8",
-        "100.64.0.0/10",
         "127.0.0.0/8",
-        "169.254.0.0/16",
         "172.16.0.0/12",
-        "192.168.0.0/16",
-        "224.0.0.0/4",
-        "fc00::/7"
+        "192.168.0.0/16"
       ],
       "route_exclude_address_set": ["geoip-cn"]
     }
@@ -618,14 +602,6 @@
         "outbound": "🎮 分流"
       },
       {
-        "rule_set": "geosite-gfw",
-        "outbound": "🚀 手选节点"
-      },
-      {
-        "rule_set": "geosite-geolocation-cn",
-        "outbound": "direct-out"
-      },
-      {
         "rule_set": ["geoip-cn", "geosite-cn"],
         "outbound": "direct-out"
       }
@@ -828,17 +804,10 @@
         "download_detour": "direct-out"
       },
       {
-        "tag": "geosite-geolocation-cn",
+        "tag": "geosite-geolocation-!cn",
         "type": "remote",
         "format": "binary",
-        "url": "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@sing/geo/geosite/geolocation-cn.srs",
-        "download_detour": "direct-out"
-      },
-      {
-        "tag": "geosite-gfw",
-        "type": "remote",
-        "format": "binary",
-        "url": "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@sing/geo/geosite/gfw.srs",
+        "url": "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@sing/geo/geosite/geolocation-!cn.srs",
         "download_detour": "direct-out"
       },
       {
