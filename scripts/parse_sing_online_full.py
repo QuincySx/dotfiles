@@ -147,7 +147,7 @@ def convert_list_to_json(file_path):
         line = line.strip()
         if line and not line.startswith('#'):
             parts = line.split(',')
-            if len(parts) == 2 or len(parts) == 3:
+            if len(parts) == 2:
                 rule_type, value = parts
                 if rule_type == "DOMAIN-KEYWORD":
                     current_rule.setdefault("domain_keyword", []).append(value)
@@ -159,6 +159,10 @@ def convert_list_to_json(file_path):
                     current_rule.setdefault("ip_cidr", []).append(value)
                 elif rule_type == "DOMAIN-REGEX":
                     current_rule.setdefault("domain_regex", []).append(value)
+            if len(parts) == 3:
+                rule_type, value, flag = parts
+                if rule_type == "IP-CIDR":
+                    current_rule.setdefault("ip_cidr", []).append(value)
                 # 可以根据需要添加更多的规则类型
     if current_rule:
         rules.append(current_rule)
