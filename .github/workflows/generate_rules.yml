@@ -36,19 +36,19 @@ jobs:
 
       - name: Parse and download metadata
         run: |
-          python ./scripts/parse_online_full.py
+          python ./.github/scripts/parse_online_full.py
 
       - name: Generate fake_ip_filter
         run: |
-          python ./scripts/generate_fake_ip_filter.py
+          python ./.github/scripts/generate_fake_ip_filter.py
 
       - name: Backup Online_Full.ini
         run: |
-          python ./scripts/backup_online_full.py
+          python ./.github/scripts/backup_online_full.py
 
       - name: Backup Sing_Online_Full.ini
         run: |
-          python ./scripts/parse_sing_online_full.py
+          python ./.github/scripts/parse_sing_online_full.py
 
       - name: Commit and push changes
         run: |

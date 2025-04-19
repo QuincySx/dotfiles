@@ -1,5 +1,9 @@
 import os
-import requests
+import sys
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+from utils import (
+    fetch_url_content, read_lines_from_file, ensure_directory, filter_lines
+)
 
 def allowed_domain_type(line):
     try:
@@ -10,30 +14,30 @@ def allowed_domain_type(line):
 
 def get_acl4ssr_china_fake_ip_filter():
     url = "https://raw.githubusercontent.com/ACL4SSR/ACL4SSR/master/Clash/ChinaDomain.list"
-    response = requests.get(url)
-    if response.status_code == 200:
+    response = fetch_url_content(url)
+    if response:
         lines = response.text.strip().split('\n')
         return [f"+.{line.split(',')[1]}" for line in lines if allowed_domain_type(line)]
     return []
 
 def get_custom_fake_ip_filter():
     url = "https://raw.githubusercontent.com/QuincySx/CustomRules/metadata/rules/Ac-custom-direct.list"
-    response = requests.get(url)
-    if response.status_code == 200:
+    response = fetch_url_content(url)
+    if response:
         lines = response.text.strip().split('\n')
         return [f"+.{line.split(',')[1]}" for line in lines if allowed_domain_type(line)]
     return []
 
 def get_openclash_fake_ip_filter():
     url = "https://raw.githubusercontent.com/vernesong/OpenClash/master/luci-app-openclash/root/etc/openclash/custom/openclash_custom_fake_filter.list"
-    response = requests.get(url)
-    if response.status_code == 200:
+    response = fetch_url_content(url)
+    if response:
         return [line for line in response.text.strip().split('\n')]
     return []
 
 def read_custom_fake_ip_filter(file_path):
-    with open(file_path, "r") as file:
-        return [line.strip() for line in file.readlines()]
+    lines = read_lines_from_file(file_path)
+    return [line.strip() for line in lines]
 
 def format_yaml_domain_list(domain_list):
     return [f'"{domain}"' if domain.startswith("*.") or domain.startswith("+.") else domain for domain in domain_list if not domain.startswith("#")]
@@ -62,7 +66,7 @@ def main():
         print("Error: one of the domain lists is not a list")
         return
 
-    os.makedirs("metadata/clash", exist_ok=True)
+    ensure_directory("metadata/clash")
 
     full_domains = openclash_domains + custom_chain_domains + chain_domains + custom_domains
     lite_domains = openclash_domains + custom_chain_domains + custom_domains

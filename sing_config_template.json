@@ -8,7 +8,7 @@
       "external_controller": "0.0.0.0:9090",
       "external_ui": "ui",
       "secret": "123456",
-      "external_ui_download_url": "https://mirror.ghproxy.com/https://github.com/MetaCubeX/metacubexd/archive/gh-pages.zip",
+      "external_ui_download_url": "https://edgeone.gh-proxy.com/github.com/MetaCubeX/metacubexd/archive/gh-pages.zip",
       "external_ui_download_detour": "direct-out",
       "default_mode": "rule"
     },
@@ -49,10 +49,7 @@
         "server": "resolverDns"
       },
       {
-        "rule_set": [
-          "ac-china",
-          "geosite-cn"
-        ],
+        "rule_set": ["ac-china", "geosite-cn"],
         "server": "localDns"
       },
       {
@@ -81,18 +78,12 @@
       "type": "tun",
       "tag": "tun-in",
       "interface_name": "sing-box-utun",
-      "inet4_address": ["172.19.0.1/30"],
-      "inet6_address": ["fdfe:dcba:9876::1/126"],
-      "mtu": 8000,
-      "gso": true,
+      "address": ["172.19.0.1/30", "fdfe:dcba:9876::1/126"],
+      "mtu": 1492,
       "auto_route": true,
       "auto_redirect": true,
       "strict_route": true,
       "udp_timeout": "30m",
-      "domain_strategy": "prefer_ipv4",
-      "sniff": true,
-      "sniff_override_destination": false,
-      "endpoint_independent_nat": false,
       "route_exclude_address_set": ["geoip-cn"]
     }
   ],
@@ -100,10 +91,6 @@
     {
       "type": "direct",
       "tag": "direct-out"
-    },
-    {
-      "type": "dns",
-      "tag": "dns-out"
     },
     {
       "type": "block",
@@ -119,6 +106,7 @@
         "🇸🇬 狮城节点",
         "🇯🇵 日本节点",
         "🇺🇲 美国节点",
+        "🏴‍☠️ 自建节点",
         "🇺🇳 其他节点",
         "🎮 游戏节点",
         "🎥 奈飞节点",
@@ -140,31 +128,31 @@
         "🚀 手选节点",
         "🇭🇰 香港自动节点",
         "🇭🇰 香港节点",
+        "🏴‍☠️ 自建节点",
         "🇨🇳 台湾节点",
         "🇸🇬 狮城节点",
         "🇯🇵 日本节点",
         "🇺🇲 美国节点",
         "🇺🇳 其他节点",
-        "direct-out",
-        "block-out"
+        "direct-out"
       ],
       "default": "🇯🇵 日本节点"
     },
     {
-      "tag": "🚀 CDN 节点",
+      "tag": "🚀 CDN 分流",
       "type": "selector",
       "outbounds": [
         "🇺🇳 低倍节点",
         "🚀 手选节点",
         "🇭🇰 香港自动节点",
         "🇭🇰 香港节点",
+        "🏴‍☠️ 自建节点",
         "🇨🇳 台湾节点",
         "🇸🇬 狮城节点",
         "🇯🇵 日本节点",
         "🇺🇲 美国节点",
         "🇺🇳 其他节点",
-        "direct-out",
-        "block-out"
+        "direct-out"
       ]
     },
     {
@@ -180,8 +168,7 @@
         "🇯🇵 日本节点",
         "🇺🇲 美国节点",
         "🇺🇳 其他节点",
-        "direct-out",
-        "block-out"
+        "direct-out"
       ]
     },
     {
@@ -196,8 +183,7 @@
         "🇯🇵 日本节点",
         "🇺🇲 美国节点",
         "🇺🇳 其他节点",
-        "direct-out",
-        "block-out"
+        "direct-out"
       ],
       "default": "🇺🇲 美国节点"
     },
@@ -278,8 +264,7 @@
         "🇺🇲 美国节点",
         "🇺🇳 其他节点",
         "🎮 游戏节点",
-        "direct-out",
-        "block-out"
+        "direct-out"
       ],
       "default": "direct-out"
     },
@@ -296,8 +281,7 @@
         "🇺🇲 美国节点",
         "🇺🇳 其他节点",
         "🎮 游戏节点",
-        "direct-out",
-        "block-out"
+        "direct-out"
       ],
       "default": "direct-out"
     },
@@ -314,8 +298,7 @@
         "🇺🇲 美国节点",
         "🇺🇳 其他节点",
         "🎮 游戏节点",
-        "direct-out",
-        "block-out"
+        "direct-out"
       ],
       "default": "🚀 手选节点"
     },
@@ -331,21 +314,20 @@
         "🇯🇵 日本节点",
         "🇺🇲 美国节点",
         "🇺🇳 其他节点",
-        "direct-out",
-        "block-out"
+        "direct-out"
       ],
       "default": "🇨🇳 台湾节点"
     },
     {
       "tag": "🍃 应用净化分流",
       "type": "selector",
-      "outbounds": ["block-out", "direct-out"],
+      "outbounds": ["block-out", "direct-out", "🚀 手选节点"],
       "default": "block-out"
     },
     {
       "tag": "🛑 广告分流",
       "type": "selector",
-      "outbounds": ["block-out", "direct-out"],
+      "outbounds": ["block-out", "direct-out", "🚀 手选节点"],
       "default": "block-out"
     },
     {
@@ -415,6 +397,24 @@
       ]
     },
     {
+      "tag": "🇺🇲 美国节点",
+      "type": "selector",
+      "outbounds": ["{all}", "direct-out"],
+      "filter": [
+        { "action": "include", "keywords": ["🇺🇸|US|us|美国|美|United States|la|LA|sj|SJ"] },
+        { "action": "exclude", "keywords": ["遊戲|游戏|game|Game|GAME"] }
+      ]
+    },
+    {
+      "tag": "🏴‍☠️ 自建节点",
+      "type": "selector",
+      "outbounds": ["{all}", "direct-out"],
+      "filter": [
+        { "action": "include", "keywords": ["self"] },
+        { "action": "exclude", "keywords": ["遊戲|游戏|game|Game|GAME"] }
+      ]
+    },
+    {
       "tag": "🇨🇳 台湾节点",
       "type": "selector",
       "outbounds": ["{all}", "direct-out"],
@@ -429,15 +429,6 @@
       "outbounds": ["{all}", "direct-out"],
       "filter": [
         { "action": "include", "keywords": ["🇸🇬|SG|sg|新加坡|狮|Singapore"] },
-        { "action": "exclude", "keywords": ["遊戲|游戏|game|Game|GAME"] }
-      ]
-    },
-    {
-      "tag": "🇺🇲 美国节点",
-      "type": "selector",
-      "outbounds": ["{all}", "direct-out"],
-      "filter": [
-        { "action": "include", "keywords": ["🇺🇸|US|us|美国|美|United States"] },
         { "action": "exclude", "keywords": ["遊戲|游戏|game|Game|GAME"] }
       ]
     },
@@ -484,11 +475,25 @@
     {
       "tag": "🇺🇳 低倍节点",
       "type": "selector",
-      "outbounds": ["{all}", "direct-out"],
+      "outbounds": [
+        "🚀 手选节点",
+        "🇭🇰 香港自动节点",
+        "🇭🇰 香港节点",
+        "🇨🇳 台湾节点",
+        "🇸🇬 狮城节点",
+        "🏴‍☠️ 自建节点",
+        "🇯🇵 日本节点",
+        "🇺🇲 美国节点",
+        "🇺🇳 其他节点",
+        "{all}",
+        "direct-out"
+      ],
       "filter": [
         {
           "action": "include",
-          "keywords": ["日用|🇭🇰|HK|hk|香港|香|Hong Kong|🇸🇬|SG|sg|新加坡|狮|Singapore"]
+          "keywords": [
+            "日用|实验|🇭🇰|HK|hk|香港|香|Hong Kong|🇸🇬|SG|sg|新加坡|狮|Singapore|self"
+          ]
         },
         {
           "action": "exclude",
@@ -502,19 +507,44 @@
     "final": "🐟 漏网分流",
     "rules": [
       {
-        "inbound": "dns-in",
-        "outbound": "dns-out"
+        "inbound": "tun-in",
+        "action": "resolve",
+        "strategy": "prefer_ipv4"
+      },
+      {
+        "inbound": ["tun-in"],
+        "action": "sniff",
+        "sniffer": [
+          "dns",
+          "bittorrent",
+          "http",
+          "tls",
+          "quic",
+          "dtls",
+          "stun"
+        ]
       },
       {
         "protocol": "dns",
-        "outbound": "dns-out"
+        "action": "hijack-dns"
       },
       {
-        "protocol": "quic",
-        "outbound": "block-out"
+        "protocol": [
+          "bittorrent",
+          "stun"
+        ],
+        "action": "route",
+        "outbound": "direct-out"
       },
       {
-        "rule_set": ["ac-privacy-ban", "ac-scam-ban"],
+        "protocol": [
+          "quic"
+        ],
+        "action": "route",
+        "outbound": "reject"
+      },
+      {
+        "rule_set": ["ac-privacy-ban", "ac-scam-ban", "ac-httpdns-ban"],
         "outbound": "🍃 应用净化分流"
       },
       {
@@ -534,12 +564,12 @@
         "outbound": "direct-out"
       },
       {
-        "domain_suffix": ["google.com", "google.dev", "googleapis.com"],
-        "outbound": "🚀 手选节点"
-      },
-      {
         "rule_set": ["ac-openai", "geosite-openai"],
         "outbound": "🤖 GPT分流"
+      },
+      {
+        "domain_suffix": ["google.com", "google.dev", "googleapis.com"],
+        "outbound": "🚀 手选节点"
       },
       {
         "rule_set": ["ac-china", "ac-custom-direct"],
@@ -550,8 +580,8 @@
         "outbound": "🚀 手选节点"
       },
       {
-        "rule_set": ["proxy-ip-cdn", "proxy-domain-cdn"],
-        "outbound": "🚀 CDN 节点"
+        "rule_set": ["proxy-ip-cdn", "proxy-domain-cdn", "ac-cdn-proxy"],
+        "outbound": "🚀 CDN 分流"
       },
       {
         "rule_set": ["apple-cn", "apple-cn-cdn"],
@@ -570,7 +600,12 @@
         "outbound": "🎮 直连分流"
       },
       {
-        "rule_set": ["geoip-netflix", "geosite-netflix", "geosite-disney", "geosite-spotify"],
+        "rule_set": [
+          "geoip-netflix",
+          "geosite-netflix",
+          "geosite-disney",
+          "geosite-spotify"
+        ],
         "outbound": "🎥 奈飞、Disney、Spotify 分流"
       },
       {
@@ -682,6 +717,20 @@
         "type": "remote",
         "format": "binary",
         "url": "https://testingcf.jsdelivr.net/gh/QuincySx/CustomRules@metadata/sing/rules/Ac-xbox-proxy.srs",
+        "download_detour": "direct-out"
+      },
+      {
+        "tag": "ac-cdn-proxy",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://testingcf.jsdelivr.net/gh/QuincySx/CustomRules@metadata/sing/rules/Ac-cdn-proxy.srs",
+        "download_detour": "direct-out"
+      },
+      {
+        "tag": "ac-httpdns-ban",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://testingcf.jsdelivr.net/gh/QuincySx/CustomRules@metadata/sing/rules/Ac-httpdns-ban.srs",
         "download_detour": "direct-out"
       },
       {
