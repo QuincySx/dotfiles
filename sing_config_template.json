@@ -568,10 +568,6 @@
         "outbound": "🤖 GPT分流"
       },
       {
-        "domain_suffix": ["google.com", "google.dev", "googleapis.com"],
-        "outbound": "🚀 手选节点"
-      },
-      {
         "rule_set": ["ac-china", "ac-custom-direct"],
         "outbound": "direct-out"
       },
@@ -631,7 +627,6 @@
       {
         "rule_set": [
           "ac-xbox-proxy",
-          "ac-nintendo-proxy",
           "geosite-category-games"
         ],
         "outbound": "🎮 分流"
@@ -685,10 +680,10 @@
         "download_detour": "direct-out"
       },
       {
-        "tag": "ac-nintendo-proxy",
+        "tag": "ac-xbox-proxy",
         "type": "remote",
         "format": "binary",
-        "url": "https://testingcf.jsdelivr.net/gh/QuincySx/CustomRules@metadata/sing/rules/Ac-nintendo-proxy.srs",
+        "url": "https://testingcf.jsdelivr.net/gh/QuincySx/CustomRules@metadata/sing/rules/Ac-xbox-proxy.srs",
         "download_detour": "direct-out"
       },
       {
@@ -710,13 +705,6 @@
         "type": "remote",
         "format": "binary",
         "url": "https://testingcf.jsdelivr.net/gh/QuincySx/CustomRules@metadata/sing/rules/Ac-steam-cn.srs",
-        "download_detour": "direct-out"
-      },
-      {
-        "tag": "ac-xbox-proxy",
-        "type": "remote",
-        "format": "binary",
-        "url": "https://testingcf.jsdelivr.net/gh/QuincySx/CustomRules@metadata/sing/rules/Ac-xbox-proxy.srs",
         "download_detour": "direct-out"
       },
       {
@@ -835,7 +823,7 @@
         "tag": "geosite-category-games",
         "type": "remote",
         "format": "binary",
-        "url": "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@sing/geo/geosite/category-games.srs",
+        "url": "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@sing/geo/geosite/category-games-!cn.srs",
         "download_detour": "direct-out"
       },
       {
