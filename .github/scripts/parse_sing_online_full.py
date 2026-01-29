@@ -10,10 +10,11 @@ from utils import (
     get_base_name_and_extension
 )
 
-sing_box_version="1.11.15"
+sing_box_version="1.12.17"
 sing_box_name = f"sing-box-{sing_box_version}-linux-amd64"
 # sing_box_name = f"sing-box-{sing_box_version}-darwin-arm64"
 
+IGNORE_PREFIXES = ("Ac-", "Bak-")
 
 
 def download_convert_bin():
@@ -102,7 +103,7 @@ def backup_rule_set_and_download(input_file, output_dir='.'):
             rule['url'] = new_filepath
             
             filename = get_filename_from_url(url)
-            if not filename.startswith('Ac-') and filename.endswith('.srs'):
+            if not filename.startswith(IGNORE_PREFIXES) and filename.endswith('.srs'):
                 new_filepath = download_and_convert_rule(url, rules_dir)
                 if new_filepath:
                     rule['url'] = f"https://testingcf.jsdelivr.net/gh/QuincySx/CustomRules@{new_filepath}"

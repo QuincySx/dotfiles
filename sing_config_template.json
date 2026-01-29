@@ -1,6 +1,6 @@
 {
   "log": {
-    "level": "info",
+    "level": "error",
     "timestamp": true
   },
   "experimental": {
@@ -20,17 +20,17 @@
   },
   "dns": {
     "servers": [
-       {
-          "type": "hosts",
-          "tag": "hosts",
-          "predefined": {
-              "doh.pub": [ "1.12.12.12", "120.53.53.53", "2402:4e00::" ],
-              "dns.alidns.com": [ "223.5.5.5", "223.6.6.6", "2400:3200::1", "2400:3200:baba::1" ],
-              "dns.google": [ "8.8.8.8", "8.8.4.4" ],
-              "cloudflare-dns.com": [ "1.1.1.1", "1.0.0.1" ]
-          }
-        },
-       {
+      {
+        "type": "hosts",
+        "tag": "hosts",
+        "predefined": {
+          "doh.pub": ["1.12.12.12", "120.53.53.53", "2402:4e00::"],
+          "dns.alidns.com": ["223.5.5.5", "223.6.6.6", "2400:3200::1", "2400:3200:baba::1"],
+          "dns.google": ["8.8.8.8", "8.8.4.4"],
+          "cloudflare-dns.com": ["1.1.1.1", "1.0.0.1"]
+        }
+      },
+      {
         "tag": "proxyDns",
         "type": "https",
         "server": "dns.google",
@@ -50,7 +50,13 @@
       }
     ],
     "rules": [
-      {"ip_accept_any": true, "server": "hosts" },
+      { "ip_accept_any": true, "server": "hosts" },
+      {
+        "action": "route",
+        "rule_set": ["ac-custom-direct"],
+        "server": "localDns",
+        "strategy": "prefer_ipv6"
+      },
       {
         "action": "route",
         "rule_set": ["ac-openai", "geosite-openai"],
@@ -59,14 +65,7 @@
       },
       {
         "action": "route",
-        "rule_set": ["apple-cn", "apple-cn-cdn", "microsoft-cn-cdn"],
-        "server": "localDns",
-        "client_subnet": "221.130.33.60/24",
-        "strategy": "prefer_ipv6"
-      },
-      {
-        "action": "route",
-        "rule_set": ["ac-china", "geosite-cn"],
+        "rule_set": ["geosite-lite-cn", "apple-cn", "apple-cn-cdn", "microsoft-cn-cdn", "ac-china"],
         "server": "localDns",
         "strategy": "prefer_ipv6"
       },
@@ -74,12 +73,20 @@
         "action": "route",
         "rule_set": ["proxy-ip-cdn", "proxy-domain-cdn", "ac-cdn-proxy"],
         "server": "proxyDns",
+        "client_subnet": "221.130.33.60/24",
         "strategy": "ipv4_only"
+      },
+      {
+        "action": "route",
+        "rule_set": ["geosite-cn"],
+        "server": "localDns",
+        "strategy": "prefer_ipv6"
       },
       {
         "type": "logical",
         "mode": "and",
-        "rules": [{
+        "rules": [
+          {
             "rule_set": "geosite-geolocation-!cn",
             "invert": true
           },
@@ -88,13 +95,6 @@
           }
         ],
         "server": "localDns",
-        "client_subnet": "221.130.33.60/24",
-        "strategy": "prefer_ipv6"
-      },
-      {
-        "action": "route",
-        "rule_set": ["geosite-geolocation-!cn"],
-        "server": "proxyDns",
         "strategy": "ipv4_only"
       }
     ],
@@ -106,14 +106,15 @@
     {
       "type": "tun",
       "tag": "tun-in",
-      "interface_name": "sing-box-utun",
-      "address": ["172.19.0.1/30", "fdfe:dcba:9876::1/126"],
-      "mtu": 1492,
+      "interface_name": "momo",
+      "address": ["172.31.0.1/30", "fdfe:dcba:9876::1/126"],
+      "udp_timeout": "30m",
       "auto_route": true,
       "auto_redirect": true,
+      "exclude_mptcp": true,
       "strict_route": true,
-      "udp_timeout": "30m",
-      "route_exclude_address_set": ["geoip-cn"]
+      "route_exclude_address_set": ["geoip-cn"],
+      "route_exclude_address": ["5.5.5.5/32"]
     }
   ],
   "outbounds": [
@@ -163,6 +164,25 @@
         "🇯🇵 日本节点",
         "🇺🇲 美国节点",
         "🇺🇳 其他节点",
+        "home_kookeey_01",
+        "direct-out"
+      ],
+      "default": "🇯🇵 日本节点"
+    },
+    {
+      "tag": "🤖 Claude分流",
+      "type": "selector",
+      "outbounds": [
+        "🚀 手选节点",
+        "🇭🇰 香港自动节点",
+        "🇭🇰 香港节点",
+        "🏴‍☠️ 自建节点",
+        "🇨🇳 台湾节点",
+        "🇸🇬 狮城节点",
+        "🇯🇵 日本节点",
+        "🇺🇲 美国节点",
+        "🇺🇳 其他节点",
+        "home_kookeey_01",
         "direct-out"
       ],
       "default": "🇯🇵 日本节点"
@@ -398,7 +418,10 @@
           "action": "include",
           "keywords": ["🇭🇰|HK|hk|香港|港|HongKong|Hong Kong"]
         },
-        { "action": "exclude", "keywords": ["遊戲|游戏|game|Game|GAME"] }
+        {
+          "action": "exclude",
+          "keywords": ["遊戲|游戏|game|Game|GAME"]
+        }
       ],
       "url": "http://www.gstatic.com/generate_204",
       "interval": "30m",
@@ -413,7 +436,10 @@
           "action": "include",
           "keywords": ["🇭🇰|HK|hk|香港|港|HongKong|Hong Kong"]
         },
-        { "action": "exclude", "keywords": ["遊戲|游戏|game|Game|GAME"] }
+        {
+          "action": "exclude",
+          "keywords": ["遊戲|游戏|game|Game|GAME"]
+        }
       ]
     },
     {
@@ -421,8 +447,14 @@
       "type": "selector",
       "outbounds": ["{all}", "direct-out"],
       "filter": [
-        { "action": "include", "keywords": ["🇯🇵|JP|jp|日本|日|Japan"] },
-        { "action": "exclude", "keywords": ["日用|遊戲|游戏|game|Game|GAME"] }
+        {
+          "action": "include",
+          "keywords": ["🇯🇵|JP|jp|日本|日|Japan"]
+        },
+        {
+          "action": "exclude",
+          "keywords": ["日用|遊戲|游戏|game|Game|GAME"]
+        }
       ]
     },
     {
@@ -430,17 +462,29 @@
       "type": "selector",
       "outbounds": ["{all}", "direct-out"],
       "filter": [
-        { "action": "include", "keywords": ["🇺🇸|US|us|美国|美|United States|la|LA|sj|SJ"] },
-        { "action": "exclude", "keywords": ["遊戲|游戏|game|Game|GAME"] }
+        {
+          "action": "include",
+          "keywords": ["🇺🇸|US|us|美国|美|United States|la|LA|sj|SJ"]
+        },
+        {
+          "action": "exclude",
+          "keywords": ["遊戲|游戏|game|Game|GAME"]
+        }
       ]
     },
     {
       "tag": "🏴‍☠️ 自建节点",
       "type": "selector",
-      "outbounds": ["{all}", "direct-out"],
+      "outbounds": ["{all}", "self-hk-chain-01", "self-la02-anyreality-vmiss", "direct-out"],
       "filter": [
-        { "action": "include", "keywords": ["self"] },
-        { "action": "exclude", "keywords": ["遊戲|游戏|game|Game|GAME"] }
+        {
+          "action": "include",
+          "keywords": ["self"]
+        },
+        {
+          "action": "exclude",
+          "keywords": ["遊戲|游戏|game|Game|GAME"]
+        }
       ]
     },
     {
@@ -448,8 +492,14 @@
       "type": "selector",
       "outbounds": ["{all}", "direct-out"],
       "filter": [
-        { "action": "include", "keywords": ["🇹🇼|TW|tw|台湾|臺灣|台|Taiwan"] },
-        { "action": "exclude", "keywords": ["遊戲|游戏|game|Game|GAME"] }
+        {
+          "action": "include",
+          "keywords": ["🇹🇼|TW|tw|台湾|臺灣|台|Taiwan"]
+        },
+        {
+          "action": "exclude",
+          "keywords": ["遊戲|游戏|game|Game|GAME"]
+        }
       ]
     },
     {
@@ -457,8 +507,14 @@
       "type": "selector",
       "outbounds": ["{all}", "direct-out"],
       "filter": [
-        { "action": "include", "keywords": ["🇸🇬|SG|sg|新加坡|狮|Singapore"] },
-        { "action": "exclude", "keywords": ["遊戲|游戏|game|Game|GAME"] }
+        {
+          "action": "include",
+          "keywords": ["🇸🇬|SG|sg|新加坡|狮|Singapore"]
+        },
+        {
+          "action": "exclude",
+          "keywords": ["遊戲|游戏|game|Game|GAME"]
+        }
       ]
     },
     {
@@ -472,7 +528,10 @@
             "🇭🇰|HK|hk|香港|香|Hong Kong|🇹🇼|TW|tw|台湾|台|Taiwan|🇸🇬|SG|sg|新加坡|狮|Singapore|🇯🇵|JP|jp|日本|日|Japan|🇺🇸|US|us|美国|美"
           ]
         },
-        { "action": "exclude", "keywords": ["遊戲|游戏|game|Game|GAME"] },
+        {
+          "action": "exclude",
+          "keywords": ["遊戲|游戏|game|Game|GAME"]
+        },
         {
           "action": "exclude",
           "keywords": ["网站|地址|剩余|过期|时间|有效|Traffic|Expire"]
@@ -520,9 +579,7 @@
       "filter": [
         {
           "action": "include",
-          "keywords": [
-            "日用|实验|🇭🇰|HK|hk|香港|香|Hong Kong|🇸🇬|SG|sg|新加坡|狮|Singapore|self"
-          ]
+          "keywords": ["日用|实验|🇭🇰|HK|hk|香港|香|Hong Kong|🇸🇬|SG|sg|新加坡|狮|Singapore|self"]
         },
         {
           "action": "exclude",
@@ -534,46 +591,28 @@
   "route": {
     "auto_detect_interface": true,
     "final": "🐟 漏网分流",
+    "default_domain_resolver": "localDns",
     "rules": [
       {
-        "inbound": "tun-in",
-        "action": "resolve",
-        "strategy": "prefer_ipv4"
-      },
-      {
         "inbound": ["tun-in"],
-        "action": "sniff",
-        "sniffer": [
-          "dns",
-          "bittorrent",
-          "http",
-          "tls",
-          "quic",
-          "dtls",
-          "stun"
-        ]
+        "action": "sniff"
       },
       {
         "protocol": "dns",
         "action": "hijack-dns"
       },
       {
-        "protocol": [
-          "bittorrent",
-          "stun"
-        ],
+        "protocol": ["bittorrent", "stun"],
         "action": "route",
         "outbound": "direct-out"
       },
       {
-        "protocol": [
-          "quic"
-        ],
-        "action": "route",
-        "outbound": "reject"
+        "protocol": ["quic"],
+        "action": "reject",
+        "method": "default"
       },
       {
-        "rule_set": ["ac-privacy-ban", "ac-scam-ban", "ac-httpdns-ban"],
+        "rule_set": ["ac-privacy-ban", "ac-scam-ban", "ac-httpdns-ban", "geosite-category-httpdns-cn"],
         "outbound": "🍃 应用净化分流"
       },
       {
@@ -590,14 +629,29 @@
       },
       {
         "ip_is_private": true,
+        "action": "bypass",
         "outbound": "direct-out"
+      },
+      {
+        "rule_set": ["ac-claude"],
+        "outbound": "🤖 Claude分流"
       },
       {
         "rule_set": ["ac-openai", "geosite-openai"],
         "outbound": "🤖 GPT分流"
       },
       {
-        "rule_set": ["ac-china", "ac-custom-direct"],
+        "action": "bypass",
+        "outbound": "direct-out",
+        "rule_set": "geoip-cn"
+      },
+      {
+        "domain_suffix": ["google.com", "google.dev", "googleapis.com"],
+        "outbound": "🚀 手选节点"
+      },
+      {
+        "action": "bypass",
+        "rule_set": ["geosite-lite-cn", "ac-china", "ac-custom-direct"],
         "outbound": "direct-out"
       },
       {
@@ -609,7 +663,7 @@
         "outbound": "🚀 CDN 分流"
       },
       {
-        "rule_set": ["apple-cn", "apple-cn-cdn"],
+        "rule_set": ["apple-cn", "apple-cn-cdn", "geosite-apple-cn"],
         "outbound": "🍎 直连分流"
       },
       {
@@ -625,12 +679,7 @@
         "outbound": "🎮 直连分流"
       },
       {
-        "rule_set": [
-          "geoip-netflix",
-          "geosite-netflix",
-          "geosite-disney",
-          "geosite-spotify"
-        ],
+        "rule_set": ["geoip-netflix", "geosite-netflix", "geosite-disney", "geosite-spotify"],
         "outbound": "🎥 奈飞、Disney、Spotify 分流"
       },
       {
@@ -654,14 +703,26 @@
         "outbound": "Ⓜ️ 服务分流"
       },
       {
-        "rule_set": [
-          "ac-xbox-proxy",
-          "geosite-category-games"
-        ],
+        "rule_set": ["ac-xbox-proxy", "ac-nintendo-proxy", "geosite-category-games"],
         "outbound": "🎮 分流"
       },
       {
-        "rule_set": ["geoip-cn", "geosite-cn"],
+        "rule_set": ["geosite-cn"],
+        "action": "bypass",
+        "outbound": "direct-out"
+      },
+      {
+        "type": "logical",
+        "mode": "and",
+        "rules": [
+          {
+            "rule_set": "geoip-cn"
+          },
+          {
+            "rule_set": "geosite-geolocation-!cn",
+            "invert": true
+          }
+        ],
         "outbound": "direct-out"
       }
     ],
@@ -671,6 +732,13 @@
         "type": "remote",
         "format": "binary",
         "url": "https://testingcf.jsdelivr.net/gh/QuincySx/CustomRules@metadata/sing/rules/Ac-chat-proxy.srs",
+        "download_detour": "direct-out"
+      },
+      {
+        "tag": "ac-claude",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://testingcf.jsdelivr.net/gh/QuincySx/CustomRules@metadata/sing/rules/Ac-claude-proxy.srs",
         "download_detour": "direct-out"
       },
       {
@@ -709,10 +777,10 @@
         "download_detour": "direct-out"
       },
       {
-        "tag": "ac-xbox-proxy",
+        "tag": "ac-nintendo-proxy",
         "type": "remote",
         "format": "binary",
-        "url": "https://testingcf.jsdelivr.net/gh/QuincySx/CustomRules@metadata/sing/rules/Ac-xbox-proxy.srs",
+        "url": "https://testingcf.jsdelivr.net/gh/QuincySx/CustomRules@metadata/sing/rules/Ac-nintendo-proxy.srs",
         "download_detour": "direct-out"
       },
       {
@@ -737,6 +805,13 @@
         "download_detour": "direct-out"
       },
       {
+        "tag": "ac-xbox-proxy",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://testingcf.jsdelivr.net/gh/QuincySx/CustomRules@metadata/sing/rules/Ac-xbox-proxy.srs",
+        "download_detour": "direct-out"
+      },
+      {
         "tag": "ac-cdn-proxy",
         "type": "remote",
         "format": "binary",
@@ -748,6 +823,13 @@
         "type": "remote",
         "format": "binary",
         "url": "https://testingcf.jsdelivr.net/gh/QuincySx/CustomRules@metadata/sing/rules/Ac-httpdns-ban.srs",
+        "download_detour": "direct-out"
+      },
+      {
+        "tag": "geosite-category-httpdns-cn",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@sing/geo/geosite/category-httpdns-cn.srs",
         "download_detour": "direct-out"
       },
       {
@@ -821,6 +903,13 @@
         "download_detour": "direct-out"
       },
       {
+        "tag": "geosite-apple-cn",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@sing/geo/geosite/apple@cn.srs",
+        "download_detour": "direct-out"
+      },
+      {
         "tag": "geosite-apple-proxy",
         "type": "remote",
         "format": "binary",
@@ -852,7 +941,7 @@
         "tag": "geosite-category-games",
         "type": "remote",
         "format": "binary",
-        "url": "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@sing/geo/geosite/category-games-!cn.srs",
+        "url": "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@sing/geo/geosite/category-games.srs",
         "download_detour": "direct-out"
       },
       {
@@ -887,7 +976,14 @@
         "tag": "geosite-cn",
         "type": "remote",
         "format": "binary",
-        "url": "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@sing/geo/geosite/cn.srs",
+        "url": "https://testingcf.jsdelivr.net/gh/QuincySx/CustomRules@metadata/sing/rules/Bak-ChinaMax_Domain.srs",
+        "download_detour": "direct-out"
+      },
+      {
+        "tag": "geosite-lite-cn",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://testingcf.jsdelivr.net/gh/QuincySx/CustomRules@metadata/sing/rules/Bak-GeositeCN_Domain.srs",
         "download_detour": "direct-out"
       },
       {
