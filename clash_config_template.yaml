@@ -1,0 +1,715 @@
+# Clash Meta (mihomo) 配置模板
+# 一比一复刻 sing-box 配置
+
+mode: rule
+mixed-port: 7890
+allow-lan: true
+bind-address: '*'
+log-level: warning
+ipv6: true
+find-process-mode: strict
+unified-delay: true
+tcp-concurrent: true
+
+external-controller: '0.0.0.0:9090'
+external-ui: ui
+secret: '123456'
+
+sniffer:
+  enable: true
+  sniff:
+    HTTP:
+      ports: [80, 8080-8880]
+      override-destination: true
+    TLS:
+      ports: [443, 8443]
+    QUIC:
+      ports: [443, 8443]
+
+dns:
+  enable: true
+  listen: ':1053'
+  ipv6: true
+  prefer-h3: true
+  respect-rules: true
+  enhanced-mode: fake-ip
+  fake-ip-range: 198.18.0.1/16
+  fake-ip-filter:
+    - '*.lan'
+    - '*.local'
+    - 'localhost'
+    - '+.msftconnecttest.com'
+    - '+.msftncsi.com'
+  default-nameserver:
+    - 223.5.5.5
+    - 223.6.6.6
+  proxy-server-nameserver:
+    - 223.5.5.5
+  nameserver:
+    - 'quic://dns.alidns.com'
+    - 'https://doh.pub/dns-query'
+  fallback:
+    - 'https://dns.google/dns-query#🚀 手选节点'
+    - 'https://cloudflare-dns.com/dns-query#🚀 手选节点'
+  fallback-filter:
+    geoip: true
+    geoip-code: CN
+    geosite:
+      - gfw
+    ipcidr:
+      - 240.0.0.0/4
+  nameserver-policy:
+    'rule-set:ac-chat-proxy,geosite-openai':
+      - 'https://dns.google/dns-query#🚀 手选节点'
+    'rule-set:apple-cn,apple-cn-cdn,ac-china,geosite-cn':
+      - 'quic://dns.alidns.com'
+      - 'https://doh.pub/dns-query'
+    'rule-set:microsoft-cn-cdn,geosite-microsoft-cn':
+      - 'quic://dns.alidns.com'
+      - 'https://doh.pub/dns-query'
+    'rule-set:cdn-domainset,ac-cdn-proxy':
+      - 'https://dns.google/dns-query#🚀 手选节点'
+
+# url 里填写自己的订阅
+proxy-providers:
+  provider-subs:
+    type: http
+    url: "https://xxxxx?target=ClashMeta"
+    interval: 86400
+    health-check:
+      enable: true
+      url: 'http://www.gstatic.com/generate_204'
+      interval: 1800
+
+proxies:
+  - name: "self-hk-chain-01"
+    type: ss
+    server: 47.79.22.33
+    port: 11732
+    cipher: aes-128-gcm
+    password: "xLsmak5P8j"
+    dialer-proxy: "🇭🇰 香港节点"
+
+proxy-groups:
+  # ===== 功能分流组 =====
+  - name: 🚀 手选节点
+    type: select
+    proxies:
+      - 🇭🇰 香港节点
+      - 🇭🇰 香港自动节点
+      - 🇨🇳 台湾节点
+      - 🇸🇬 狮城节点
+      - 🇯🇵 日本节点
+      - 🇺🇲 美国节点
+      - 🏴‍☠️ 自建节点
+      - 🇺🇳 其他节点
+      - 🎮 游戏节点
+      - 🎥 奈飞节点
+      - DIRECT
+    use:
+      - provider-subs
+    exclude-filter: "(?i)网站|地址|剩余|过期|时间|有效|Traffic|Expire"
+
+  - name: 🤖 GPT分流
+    type: select
+    proxies:
+      - 🇯🇵 日本节点
+      - 🚀 手选节点
+      - 🇭🇰 香港自动节点
+      - 🇭🇰 香港节点
+      - 🏴‍☠️ 自建节点
+      - 🇨🇳 台湾节点
+      - 🇸🇬 狮城节点
+      - 🇺🇲 美国节点
+      - 🇺🇳 其他节点
+      - DIRECT
+
+  - name: 🚀 CDN 分流
+    type: select
+    proxies:
+      - 🇺🇳 低倍节点
+      - 🚀 手选节点
+      - 🇭🇰 香港自动节点
+      - 🇭🇰 香港节点
+      - 🏴‍☠️ 自建节点
+      - 🇨🇳 台湾节点
+      - 🇸🇬 狮城节点
+      - 🇯🇵 日本节点
+      - 🇺🇲 美国节点
+      - 🇺🇳 其他节点
+      - DIRECT
+
+  - name: 🎥 奈飞、Disney、Spotify 分流
+    type: select
+    proxies:
+      - 🎥 奈飞节点
+      - 🚀 手选节点
+      - 🇭🇰 香港自动节点
+      - 🇭🇰 香港节点
+      - 🇨🇳 台湾节点
+      - 🇸🇬 狮城节点
+      - 🇯🇵 日本节点
+      - 🇺🇲 美国节点
+      - 🇺🇳 其他节点
+      - DIRECT
+
+  - name: 🎥 TikTok分流
+    type: select
+    proxies:
+      - 🇺🇲 美国节点
+      - 🚀 手选节点
+      - 🇭🇰 香港自动节点
+      - 🇭🇰 香港节点
+      - 🏴‍☠️ 自建节点
+      - 🇨🇳 台湾节点
+      - 🇸🇬 狮城节点
+      - 🇯🇵 日本节点
+      - 🇺🇳 其他节点
+      - DIRECT
+
+  - name: Ⓜ️ 大陆服务分流
+    type: select
+    proxies:
+      - DIRECT
+      - 🚀 手选节点
+      - 🇭🇰 香港自动节点
+      - 🇭🇰 香港节点
+      - 🇨🇳 台湾节点
+      - 🇸🇬 狮城节点
+      - 🇯🇵 日本节点
+      - 🇺🇲 美国节点
+      - 🇺🇳 其他节点
+
+  - name: Ⓜ️ 服务分流
+    type: select
+    proxies:
+      - 🚀 手选节点
+      - 🇭🇰 香港自动节点
+      - 🇭🇰 香港节点
+      - 🇨🇳 台湾节点
+      - 🇸🇬 狮城节点
+      - 🇯🇵 日本节点
+      - 🇺🇲 美国节点
+      - 🇺🇳 其他节点
+      - DIRECT
+
+  - name: 🍎 直连分流
+    type: select
+    proxies:
+      - DIRECT
+      - 🚀 手选节点
+      - 🇭🇰 香港自动节点
+      - 🇭🇰 香港节点
+      - 🇨🇳 台湾节点
+      - 🇸🇬 狮城节点
+      - 🇯🇵 日本节点
+      - 🇺🇲 美国节点
+      - 🇺🇳 其他节点
+
+  - name: 🍎 代理分流
+    type: select
+    proxies:
+      - 🚀 手选节点
+      - 🇭🇰 香港自动节点
+      - 🇭🇰 香港节点
+      - 🇨🇳 台湾节点
+      - 🇸🇬 狮城节点
+      - 🇯🇵 日本节点
+      - 🇺🇲 美国节点
+      - 🇺🇳 其他节点
+      - DIRECT
+
+  - name: 🎮 下载分流
+    type: select
+    proxies:
+      - DIRECT
+      - 🚀 手选节点
+      - 🇭🇰 香港自动节点
+      - 🇭🇰 香港节点
+      - 🇨🇳 台湾节点
+      - 🇸🇬 狮城节点
+      - 🇯🇵 日本节点
+      - 🇺🇲 美国节点
+      - 🇺🇳 其他节点
+      - 🎮 游戏节点
+
+  - name: 🎮 直连分流
+    type: select
+    proxies:
+      - DIRECT
+      - 🚀 手选节点
+      - 🇭🇰 香港自动节点
+      - 🇭🇰 香港节点
+      - 🇨🇳 台湾节点
+      - 🇸🇬 狮城节点
+      - 🇯🇵 日本节点
+      - 🇺🇲 美国节点
+      - 🇺🇳 其他节点
+      - 🎮 游戏节点
+
+  - name: 🎮 分流
+    type: select
+    proxies:
+      - 🚀 手选节点
+      - 🇭🇰 香港自动节点
+      - 🇭🇰 香港节点
+      - 🇨🇳 台湾节点
+      - 🇸🇬 狮城节点
+      - 🇯🇵 日本节点
+      - 🇺🇲 美国节点
+      - 🇺🇳 其他节点
+      - 🎮 游戏节点
+      - DIRECT
+
+  - name: 🏦 交易所分流
+    type: select
+    proxies:
+      - 🇨🇳 台湾节点
+      - 🚀 手选节点
+      - 🇭🇰 香港自动节点
+      - 🇭🇰 香港节点
+      - 🇸🇬 狮城节点
+      - 🇯🇵 日本节点
+      - 🇺🇲 美国节点
+      - 🇺🇳 其他节点
+      - DIRECT
+
+  - name: 🍃 应用净化分流
+    type: select
+    proxies:
+      - REJECT
+      - DIRECT
+      - 🚀 手选节点
+
+  - name: 🛑 广告分流
+    type: select
+    proxies:
+      - REJECT
+      - DIRECT
+      - 🚀 手选节点
+
+  - name: 🐟 漏网分流
+    type: select
+    proxies:
+      - 🚀 手选节点
+      - 🇭🇰 香港自动节点
+      - 🇭🇰 香港节点
+      - 🇨🇳 台湾节点
+      - 🇸🇬 狮城节点
+      - 🇯🇵 日本节点
+      - 🇺🇲 美国节点
+      - 🇺🇳 其他节点
+      - DIRECT
+
+  - name: GLOBAL
+    type: select
+    proxies:
+      - 🇭🇰 香港自动节点
+      - 🇭🇰 香港节点
+      - 🇨🇳 台湾节点
+      - 🇸🇬 狮城节点
+      - 🇯🇵 日本节点
+      - 🇺🇲 美国节点
+      - 🇺🇳 其他节点
+      - 🎮 游戏节点
+      - DIRECT
+
+  # ===== 地区节点组 =====
+  - name: 🇭🇰 香港自动节点
+    type: url-test
+    use:
+      - provider-subs
+    filter: "(?i)🇭🇰|HK|香港|港|HongKong|Hong Kong"
+    exclude-filter: "(?i)遊戲|游戏|game"
+    url: 'http://www.gstatic.com/generate_204'
+    interval: 1800
+    tolerance: 50
+
+  - name: 🇭🇰 香港节点
+    type: select
+    use:
+      - provider-subs
+    proxies: [DIRECT]
+    filter: "(?i)🇭🇰|HK|香港|港|HongKong|Hong Kong"
+    exclude-filter: "(?i)遊戲|游戏|game"
+
+  - name: 🇯🇵 日本节点
+    type: select
+    use:
+      - provider-subs
+    proxies: [DIRECT]
+    filter: "(?i)🇯🇵|JP|日本|Japan"
+    exclude-filter: "(?i)日用|遊戲|游戏|game"
+
+  - name: 🇺🇲 美国节点
+    type: select
+    use:
+      - provider-subs
+    proxies: [DIRECT]
+    filter: "(?i)🇺🇸|US|美国|美|United States|la|LA|sj|SJ"
+    exclude-filter: "(?i)遊戲|游戏|game"
+
+  - name: 🏴‍☠️ 自建节点
+    type: select
+    use:
+      - provider-subs
+    proxies:
+      - self-hk-chain-01
+      - DIRECT
+    filter: "(?i)self"
+    exclude-filter: "(?i)遊戲|游戏|game"
+
+  - name: 🇨🇳 台湾节点
+    type: select
+    use:
+      - provider-subs
+    proxies: [DIRECT]
+    filter: "(?i)🇹🇼|TW|台湾|臺灣|台|Taiwan"
+    exclude-filter: "(?i)遊戲|游戏|game"
+
+  - name: 🇸🇬 狮城节点
+    type: select
+    use:
+      - provider-subs
+    proxies: [DIRECT]
+    filter: "(?i)🇸🇬|SG|新加坡|狮|Singapore"
+    exclude-filter: "(?i)遊戲|游戏|game"
+
+  - name: 🇺🇳 其他节点
+    type: select
+    use:
+      - provider-subs
+    proxies: [DIRECT]
+    exclude-filter: "(?i)🇭🇰|HK|香港|香|Hong Kong|🇹🇼|TW|台湾|台|Taiwan|🇸🇬|SG|新加坡|狮|Singapore|🇯🇵|JP|日本|日|Japan|🇺🇸|US|美国|美|遊戲|游戏|game|网站|地址|剩余|过期|时间|有效|Traffic|Expire"
+
+  - name: 🎮 游戏节点
+    type: select
+    use:
+      - provider-subs
+    proxies: [DIRECT]
+    filter: "(?i)遊戲|游戏|game"
+
+  - name: 🎥 奈飞节点
+    type: select
+    use:
+      - provider-subs
+    proxies: [DIRECT]
+    exclude-filter: "(?i)网站|地址|剩余|过期|时间|有效|Traffic|Expire"
+
+  - name: 🇺🇳 低倍节点
+    type: select
+    proxies:
+      - 🚀 手选节点
+      - 🇭🇰 香港自动节点
+      - 🇭🇰 香港节点
+      - 🇨🇳 台湾节点
+      - 🇸🇬 狮城节点
+      - 🏴‍☠️ 自建节点
+      - 🇯🇵 日本节点
+      - 🇺🇲 美国节点
+      - 🇺🇳 其他节点
+      - DIRECT
+    use:
+      - provider-subs
+    filter: "(?i)日用|实验|🇭🇰|HK|香港|香|Hong Kong|🇸🇬|SG|新加坡|狮|Singapore|self"
+    exclude-filter: "(?i)网站|地址|剩余|过期|时间|有效|Traffic|Expire"
+
+rule-providers:
+  # --- 自定义规则 (classical, 从当前仓库引用) ---
+  ac-chat-proxy:
+    type: http
+    interval: 86400
+    behavior: classical
+    format: text
+    url: "https://testingcf.jsdelivr.net/gh/QuincySx/dotfiles@metadata/rules/Ac-chat-proxy.list"
+  ac-china:
+    type: http
+    interval: 86400
+    behavior: classical
+    format: text
+    url: "https://testingcf.jsdelivr.net/gh/QuincySx/dotfiles@metadata/rules/Ac-china.list"
+  ac-custom-direct:
+    type: http
+    interval: 86400
+    behavior: classical
+    format: text
+    url: "https://testingcf.jsdelivr.net/gh/QuincySx/dotfiles@metadata/rules/Ac-custom-direct.list"
+  ac-custom-proxy:
+    type: http
+    interval: 86400
+    behavior: classical
+    format: text
+    url: "https://testingcf.jsdelivr.net/gh/QuincySx/dotfiles@metadata/rules/Ac-custom-proxy.list"
+  ac-exchange:
+    type: http
+    interval: 86400
+    behavior: classical
+    format: text
+    url: "https://testingcf.jsdelivr.net/gh/QuincySx/dotfiles@metadata/rules/Ac-exchange.list"
+  ac-game-download:
+    type: http
+    interval: 86400
+    behavior: classical
+    format: text
+    url: "https://testingcf.jsdelivr.net/gh/QuincySx/dotfiles@metadata/rules/Ac-game-download.list"
+  ac-privacy-ban:
+    type: http
+    interval: 86400
+    behavior: classical
+    format: text
+    url: "https://testingcf.jsdelivr.net/gh/QuincySx/dotfiles@metadata/rules/Ac-privacy-ban.list"
+  ac-scam-ban:
+    type: http
+    interval: 86400
+    behavior: classical
+    format: text
+    url: "https://testingcf.jsdelivr.net/gh/QuincySx/dotfiles@metadata/rules/Ac-scam-ban.list"
+  ac-steam-cn:
+    type: http
+    interval: 86400
+    behavior: classical
+    format: text
+    url: "https://testingcf.jsdelivr.net/gh/QuincySx/dotfiles@metadata/rules/Ac-steam-cn.list"
+  ac-xbox-proxy:
+    type: http
+    interval: 86400
+    behavior: classical
+    format: text
+    url: "https://testingcf.jsdelivr.net/gh/QuincySx/dotfiles@metadata/rules/Ac-xbox-proxy.list"
+  ac-cdn-proxy:
+    type: http
+    interval: 86400
+    behavior: classical
+    format: text
+    url: "https://testingcf.jsdelivr.net/gh/QuincySx/dotfiles@metadata/rules/Ac-cdn-proxy.list"
+  ac-httpdns-ban:
+    type: http
+    interval: 86400
+    behavior: classical
+    format: text
+    url: "https://testingcf.jsdelivr.net/gh/QuincySx/dotfiles@metadata/rules/Ac-httpdns-ban.list"
+  ac-apple-proxy:
+    type: http
+    interval: 86400
+    behavior: classical
+    format: text
+    url: "https://testingcf.jsdelivr.net/gh/QuincySx/dotfiles@metadata/rules/Ac-apple-proxy.list"
+
+  # --- MetaCubeX geosite (domain) ---
+  geosite-category-httpdns-cn:
+    type: http
+    interval: 86400
+    behavior: domain
+    format: text
+    url: "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@meta/geo/geosite/category-httpdns-cn.list"
+  geosite-category-ads-all:
+    type: http
+    interval: 86400
+    behavior: domain
+    format: text
+    url: "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@meta/geo/geosite/category-ads-all.list"
+  geosite-openai:
+    type: http
+    interval: 86400
+    behavior: domain
+    format: text
+    url: "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@meta/geo/geosite/openai.list"
+  geosite-github:
+    type: http
+    interval: 86400
+    behavior: domain
+    format: text
+    url: "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@meta/geo/geosite/github.list"
+  geosite-spotify:
+    type: http
+    interval: 86400
+    behavior: domain
+    format: text
+    url: "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@meta/geo/geosite/spotify.list"
+  geosite-tiktok:
+    type: http
+    interval: 86400
+    behavior: domain
+    format: text
+    url: "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@meta/geo/geosite/tiktok.list"
+  geosite-netflix:
+    type: http
+    interval: 86400
+    behavior: domain
+    format: text
+    url: "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@meta/geo/geosite/netflix.list"
+  geosite-disney:
+    type: http
+    interval: 86400
+    behavior: domain
+    format: text
+    url: "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@meta/geo/geosite/disney.list"
+  geosite-microsoft:
+    type: http
+    interval: 86400
+    behavior: domain
+    format: text
+    url: "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@meta/geo/geosite/microsoft.list"
+  geosite-microsoft-cn:
+    type: http
+    interval: 86400
+    behavior: domain
+    format: text
+    url: "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@meta/geo/geosite/microsoft@cn.list"
+  geosite-category-games:
+    type: http
+    interval: 86400
+    behavior: domain
+    format: text
+    url: "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@meta/geo/geosite/category-games@!cn.list"
+  geosite-category-cryptocurrency:
+    type: http
+    interval: 86400
+    behavior: domain
+    format: text
+    url: "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@meta/geo/geosite/category-cryptocurrency.list"
+  geosite-games-cn:
+    type: http
+    interval: 86400
+    behavior: domain
+    format: text
+    url: "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@meta/geo/geosite/category-games@cn.list"
+  geosite-geolocation-not-cn:
+    type: http
+    interval: 86400
+    behavior: domain
+    format: text
+    url: "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@meta/geo/geosite/geolocation-!cn.list"
+  geosite-cn:
+    type: http
+    interval: 86400
+    behavior: domain
+    format: text
+    url: "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@meta/geo/geosite/cn.list"
+  # --- SukkaW/Surge 规则 (原 yyhhyyyyyy sing-box-ruleset 的上游源) ---
+  apple-cn:
+    type: http
+    interval: 43200
+    behavior: classical
+    format: text
+    url: "https://ruleset.skk.moe/Clash/non_ip/apple_cn.txt"
+  apple-cn-cdn:
+    type: http
+    interval: 43200
+    behavior: domain
+    format: text
+    url: "https://ruleset.skk.moe/Clash/domainset/apple_cdn.txt"
+  microsoft-cn-cdn:
+    type: http
+    interval: 43200
+    behavior: classical
+    format: text
+    url: "https://ruleset.skk.moe/Clash/non_ip/microsoft_cdn.txt"
+  cdn-domainset:
+    type: http
+    interval: 43200
+    behavior: domain
+    format: text
+    url: "https://ruleset.skk.moe/Clash/domainset/cdn.txt"
+  cdn-non-ip:
+    type: http
+    interval: 43200
+    behavior: classical
+    format: text
+    url: "https://ruleset.skk.moe/Clash/non_ip/cdn.txt"
+
+  # --- MetaCubeX geoip (ipcidr) ---
+  geoip-netflix:
+    type: http
+    interval: 86400
+    behavior: ipcidr
+    format: text
+    url: "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@meta/geo/geoip/netflix.list"
+  geoip-cn:
+    type: http
+    interval: 86400
+    behavior: ipcidr
+    format: text
+    url: "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@meta/geo/geoip/cn.list"
+
+rules:
+  # QUIC 阻断 (等效 sing-box: quic → block)
+  - AND,((NETWORK,udp),(DST-PORT,443)),REJECT
+
+  # 应用净化
+  - RULE-SET,ac-privacy-ban,🍃 应用净化分流
+  - RULE-SET,ac-scam-ban,🍃 应用净化分流
+  - RULE-SET,ac-httpdns-ban,🍃 应用净化分流
+  - RULE-SET,geosite-category-httpdns-cn,🍃 应用净化分流
+
+  # 广告拦截
+  - RULE-SET,geosite-category-ads-all,🛑 广告分流
+
+  # 私有 IP 直连
+  - GEOIP,private,DIRECT,no-resolve
+
+  # OpenAI / GPT
+  - RULE-SET,ac-chat-proxy,🤖 GPT分流
+  - RULE-SET,geosite-openai,🤖 GPT分流
+
+  # 国内直连
+  - RULE-SET,ac-china,DIRECT
+  - RULE-SET,ac-custom-direct,DIRECT
+
+  # 自定义代理
+  - RULE-SET,ac-custom-proxy,🚀 手选节点
+
+  # CDN 代理
+  - RULE-SET,cdn-non-ip,🚀 CDN 分流
+  - RULE-SET,cdn-domainset,🚀 CDN 分流
+  - RULE-SET,ac-cdn-proxy,🚀 CDN 分流
+
+  # Apple 直连
+  - RULE-SET,apple-cn,🍎 直连分流
+  - RULE-SET,apple-cn-cdn,🍎 直连分流
+
+  # Microsoft 国内服务
+  - RULE-SET,microsoft-cn-cdn,Ⓜ️ 大陆服务分流
+  - RULE-SET,geosite-microsoft-cn,Ⓜ️ 大陆服务分流
+
+  # 游戏下载
+  - RULE-SET,ac-game-download,🎮 下载分流
+
+  # 游戏国内直连
+  - RULE-SET,ac-steam-cn,🎮 直连分流
+  - RULE-SET,geosite-games-cn,🎮 直连分流
+
+  # 奈飞、Disney、Spotify
+  - RULE-SET,geoip-netflix,🎥 奈飞、Disney、Spotify 分流,no-resolve
+  - RULE-SET,geosite-netflix,🎥 奈飞、Disney、Spotify 分流
+  - RULE-SET,geosite-disney,🎥 奈飞、Disney、Spotify 分流
+  - RULE-SET,geosite-spotify,🎥 奈飞、Disney、Spotify 分流
+
+  # 交易所
+  - RULE-SET,ac-exchange,🏦 交易所分流
+  - RULE-SET,geosite-category-cryptocurrency,🏦 交易所分流
+
+  # TikTok
+  - RULE-SET,geosite-tiktok,🎥 TikTok分流
+
+  # Apple 代理
+  - RULE-SET,ac-apple-proxy,🍎 代理分流
+
+  # GitHub
+  - RULE-SET,geosite-github,🚀 手选节点
+
+  # Microsoft 全球服务
+  - RULE-SET,geosite-microsoft,Ⓜ️ 服务分流
+
+  # 游戏 (非国内)
+  - RULE-SET,ac-xbox-proxy,🎮 分流
+  - RULE-SET,geosite-category-games,🎮 分流
+
+  # 国内域名直连
+  - RULE-SET,geosite-cn,DIRECT
+
+  # 国内 IP 且非海外域名 → 直连
+  - AND,((RULE-SET,geoip-cn,no-resolve),(NOT,((RULE-SET,geosite-geolocation-not-cn)))),DIRECT
+
+  # 漏网之鱼
+  - MATCH,🐟 漏网分流

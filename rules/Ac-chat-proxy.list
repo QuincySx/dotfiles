@@ -13,11 +13,20 @@ DOMAIN-KEYWORD,openaicom-api
 DOMAIN-SUFFIX,oaistatic.com
 DOMAIN-SUFFIX,oaiusercontent.com
 
-# Apple
-DOMAIN-SUFFIX,apple-relay.mask.apple-dns.net
-DOMAIN-SUFFIX,apple-relay.cloudflare.com
-DOMAIN-SUFFIX,apple-relay.apple.com
+# >> Apple Relay  Apple Intelligence
+# Sadly, even though Oblivious HTTP Relay is an open standard, supposed to enhance privacy. Apple uses a loophole
+# to get user real request country and IP address from third-party CDN providers (like Cloudflare or Fastly) to
+# blocks country from accessing Apple Intelligence services.
+DOMAIN,apple-relay.fastly-edge.com
+DOMAIN,apple-relay.mask.apple-dns.net
+DOMAIN,apple-relay.cloudflare.com
+DOMAIN,apple-relay.apple.com
+DOMAIN,cp4.cloudflare.com
 DOMAIN-KEYWORD,apple-relay
+
+# >> com.apple.geod
+DOMAIN,gspe1-ssl.ls.apple.com
+
 
 # Cursor
 DOMAIN-SUFFIX,cursor.sh

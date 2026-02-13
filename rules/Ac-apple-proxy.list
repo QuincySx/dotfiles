@@ -47,6 +47,6 @@ DOMAIN-SUFFIX,ocsp.apple.com
 DOMAIN-SUFFIX,tv.apple.com
 
 
-// identity、init
+# identity、init
 DOMAIN-SUFFIX,ess.apple.com
 DOMAIN-SUFFIX,guzzoni.apple.com
