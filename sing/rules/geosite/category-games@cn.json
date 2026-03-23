@@ -3,6 +3,7 @@
   "rules": [
     {
       "domain": [
+        "uplaypc-s-ubisoft.cdn.ubi.com",
         "gog.qtlglb.com",
         "gogalaxy.gog-statics.com",
         "menu-static.gog-statics.com",
@@ -13,10 +14,11 @@
         "gog-cdn.akamaized.net",
         "alibaba.cdn.steampipe.steamcontent.com",
         "lv.queniujq.cn",
-        "xz.pphimalayanrt.com",
-        "uplaypc-s-ubisoft.cdn.ubi.com"
+        "xz.pphimalayanrt.com"
       ],
       "domain_suffix": [
+        "leagueoflegends.cn",
+        "lpl.com.cn",
         "legendofzelda.cn",
         "legendofzelda.com.cn",
         "miitomo.com.cn",
@@ -29,6 +31,7 @@
         "mariokart.cn",
         "mariokart.com.cn",
         "supermariobros.com.cn",
+        "yostar.cn",
         "steamserver.net",
         "steamusercontent.com",
         "csgo.wmsj.cn",
@@ -43,11 +46,8 @@
         "steamstatic.com.8686c.com",
         "steamchina.com",
         "gstore.val.manlaxy.com",
-        "yostar.cn",
-        "leagueoflegends.cn",
-        "lpl.com.cn",
-        "xboxlive.cn",
-        "bluearchive-cn.com"
+        "bluearchive-cn.com",
+        "xboxlive.cn"
       ],
       "domain_regex": [
         "^.+-mihayo\\.akamaized\\.net$",
