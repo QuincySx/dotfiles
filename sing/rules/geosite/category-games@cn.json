@@ -17,6 +17,21 @@
         "gog-cdn.akamaized.net"
       ],
       "domain_suffix": [
+        "yostar.cn",
+        "legendofzelda.cn",
+        "legendofzelda.com.cn",
+        "miitomo.com.cn",
+        "nintendolabo.cn",
+        "nintendoswitch.cn",
+        "nintendoswitch.com.cn",
+        "supersmashbros.cn",
+        "supersmashbros.com.cn",
+        "xn--mts47c3w9b1qr.cn",
+        "mariokart.cn",
+        "mariokart.com.cn",
+        "supermariobros.com.cn",
+        "xboxlive.cn",
+        "bluearchive-cn.com",
         "steamserver.net",
         "steamusercontent.com",
         "csgo.wmsj.cn",
@@ -31,31 +46,16 @@
         "steamstatic.com.8686c.com",
         "steamchina.com",
         "gstore.val.manlaxy.com",
-        "yostar.cn",
-        "xboxlive.cn",
-        "bluearchive-cn.com",
-        "legendofzelda.cn",
-        "legendofzelda.com.cn",
-        "miitomo.com.cn",
-        "nintendolabo.cn",
-        "nintendoswitch.cn",
-        "nintendoswitch.com.cn",
-        "supersmashbros.cn",
-        "supersmashbros.com.cn",
-        "xn--mts47c3w9b1qr.cn",
-        "mariokart.cn",
-        "mariokart.com.cn",
-        "supermariobros.com.cn",
         "leagueoflegends.cn",
         "lpl.com.cn"
       ],
       "domain_regex": [
-        "^.+-mihayo\\.akamaized\\.net$",
         "^cdn\\d-epicgames-\\d+\\.file\\.myqcloud\\.com$",
         "^epicgames-download\\d-\\d+\\.file\\.myqcloud\\.com$",
         "^cdn-akamai-.+\\.gog-services\\.com$",
         "^gog-cdn-.+\\.footprint\\.net$",
-        "^images(-\\d)?\\.gog-statics\\.com$"
+        "^images(-\\d)?\\.gog-statics\\.com$",
+        "^.+-mihayo\\.akamaized\\.net$"
       ]
     }
   ]
