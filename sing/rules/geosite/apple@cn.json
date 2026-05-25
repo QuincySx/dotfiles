@@ -273,6 +273,15 @@
         "xn--czrs0t4phtr3a.cn",
         "xn--fiqs8sxootzz.cn",
         "xn--ohq11k7pl25iyo8a.cn",
+        "apple-itunes.cn",
+        "itunes-apple.cn",
+        "itunesapple.cn",
+        "itunesradio.cn",
+        "itunesradio.com.cn",
+        "researchkit.cn",
+        "researchkit.com.cn",
+        "swiftui.cn",
+        "swiftui.com.cn",
         "beats1.cn",
         "beats1.com.cn",
         "beats2.com.cn",
@@ -286,16 +295,7 @@
         "icloud.cn",
         "icloud.com.cn",
         "icloud.net.cn",
-        "icloudapple.cn",
-        "apple-itunes.cn",
-        "itunes-apple.cn",
-        "itunesapple.cn",
-        "itunesradio.cn",
-        "itunesradio.com.cn",
-        "researchkit.cn",
-        "researchkit.com.cn",
-        "swiftui.cn",
-        "swiftui.com.cn"
+        "icloudapple.cn"
       ]
     }
   ]
