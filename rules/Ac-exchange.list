@@ -17,6 +17,11 @@ DOMAIN-SUFFIX,arbitrum.io
 DOMAIN-SUFFIX,poly.network
 DOMAIN-SUFFIX,boba.network
 
+# bina
+DOMAIN-SUFFIX,festream.saasexch.co
+DOMAIN-SUFFIX,binance.info
+DOMAIN-SUFFIX,d3sknckuh1o9tg.cloudfront.net
+
 # Ethena
 DOMAIN-SUFFIX,ethena.fi
 
