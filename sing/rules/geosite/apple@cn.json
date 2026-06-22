@@ -168,6 +168,7 @@
         "itunes-apple.com.akadns.net",
         "itunes.apple.com",
         "itunesconnect.apple.com",
+        "mensura.cdn-apple.com",
         "mesu-cdn.apple.com.akadns.net",
         "mesu-china.apple.com.akadns.net",
         "mesu.apple.com",
@@ -269,10 +270,6 @@
         "xn--czrs0t4phtr3a.cn",
         "xn--fiqs8sxootzz.cn",
         "xn--ohq11k7pl25iyo8a.cn",
-        "researchkit.cn",
-        "researchkit.com.cn",
-        "swiftui.cn",
-        "swiftui.com.cn",
         "beats1.cn",
         "beats1.com.cn",
         "beats2.com.cn",
@@ -291,7 +288,11 @@
         "itunes-apple.cn",
         "itunesapple.cn",
         "itunesradio.cn",
-        "itunesradio.com.cn"
+        "itunesradio.com.cn",
+        "researchkit.cn",
+        "researchkit.com.cn",
+        "swiftui.cn",
+        "swiftui.com.cn"
       ]
     }
   ]
