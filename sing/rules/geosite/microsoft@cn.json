@@ -15,7 +15,6 @@
         "ctldl.windowsupdate.com",
         "developer.microsoft.com",
         "download.microsoft.com",
-        "download.visualstudio.microsoft.com",
         "dreamspark.download.prss.microsoft.com",
         "dreamsparkuat.download.prss.microsoft.com",
         "f.c2r.ts.cdn.office.net",
@@ -53,7 +52,8 @@
         "vz.download.prss.microsoft.com",
         "windbg.download.prss.microsoft.com",
         "bj1.api.bing.com",
-        "emoi-cncdn.bing.com"
+        "emoi-cncdn.bing.com",
+        "download.visualstudio.microsoft.com"
       ],
       "domain_suffix": [
         "dynamics.cn",
