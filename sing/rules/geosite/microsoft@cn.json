@@ -51,8 +51,8 @@
         "vscode.download.prss.microsoft.com",
         "vz.download.prss.microsoft.com",
         "windbg.download.prss.microsoft.com",
-        "download.visualstudio.microsoft.com",
-        "bj1.api.bing.com"
+        "bj1.api.bing.com",
+        "download.visualstudio.microsoft.com"
       ],
       "domain_suffix": [
         "dynamics.cn",
@@ -92,9 +92,6 @@
         "dcg.microsoft.com",
         "dl.delivery.mp.microsoft.com",
         "download.windowsupdate.com",
-        "microsoftreactor.cn",
-        "microsoftreactor.com.cn",
-        "reactorms.com.cn",
         "microsoftnews.cn",
         "msn.cn",
         "xboxlive.cn",
@@ -193,7 +190,10 @@
         "cn.mm.bing.net",
         "ditu.live.com",
         "r.bing.com",
-        "th.bing.com"
+        "th.bing.com",
+        "microsoftreactor.cn",
+        "microsoftreactor.com.cn",
+        "reactorms.com.cn"
       ]
     }
   ]
