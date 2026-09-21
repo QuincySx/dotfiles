@@ -1080,13 +1080,6 @@
         "download_detour": "direct-out"
       },
       {
-        "tag": "apple-cn-cdn",
-        "type": "remote",
-        "format": "binary",
-        "url": "https://testingcf.jsdelivr.net/gh/QuincySx/dotfiles@repo/sing/rules/domainset/apple_cdn.srs",
-        "download_detour": "direct-out"
-      },
-      {
         "tag": "geosite-apple-cn",
         "type": "remote",
         "format": "binary",
