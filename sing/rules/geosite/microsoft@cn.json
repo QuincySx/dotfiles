@@ -92,16 +92,6 @@
         "dcg.microsoft.com",
         "dl.delivery.mp.microsoft.com",
         "download.windowsupdate.com",
-        "bing.com.cn",
-        "cn.bing.com",
-        "cn.bing.net",
-        "cn.mm.bing.net",
-        "ditu.live.com",
-        "r.bing.com",
-        "th.bing.com",
-        "microsoftreactor.cn",
-        "microsoftreactor.com.cn",
-        "reactorms.com.cn",
         "microsoftnews.cn",
         "msn.cn",
         "xboxlive.cn",
@@ -193,7 +183,17 @@
         "azure-dns-7.cn",
         "azure-dns-8.cn",
         "azure-dns-9.cn",
-        "azure-dns-10.cn"
+        "azure-dns-10.cn",
+        "bing.com.cn",
+        "cn.bing.com",
+        "cn.bing.net",
+        "cn.mm.bing.net",
+        "ditu.live.com",
+        "r.bing.com",
+        "th.bing.com",
+        "microsoftreactor.cn",
+        "microsoftreactor.com.cn",
+        "reactorms.com.cn"
       ]
     }
   ]
