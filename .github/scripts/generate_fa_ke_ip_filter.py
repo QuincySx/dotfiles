@@ -31,6 +31,10 @@ def get_cn_domain_list():
     return []
 
 def get_custom_list():
+    local_path = "repo/rules/Ac-custom-direct.list"
+    if os.path.exists(local_path):
+        lines = read_lines_from_file(local_path)
+        return [f"+.{line.strip().split(',')[1]}" for line in lines if allowed_domain_type(line.strip())]
     url = "https://raw.githubusercontent.com/QuincySx/dotfiles/metadata/rules/Ac-custom-direct.list"
     response = fetch_url_content(url)
     if response:

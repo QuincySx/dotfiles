@@ -21,12 +21,13 @@ IGNORE_PREFIXES = ("Ac-", "Bak-")
 
 
 def download_convert_bin():
+    if os.path.exists(f"./{_bin_name}/{_SB}"):
+        return
     tar_filename = f"{_bin_name}.tar.gz"
     _bin_url = f"https://github.com/{_SN}/{_SB}/releases/download/v{_bin_ver}/{tar_filename}"
 
     if download_file(_bin_url, tar_filename):
         extract_tar_gz(tar_filename)
-        import os
         os.chmod(f"./{_bin_name}/{_SB}", 0o755)
 
 
@@ -106,7 +107,8 @@ def backup_rule_set_and_download(input_file, output_dir='.'):
             if not filename.startswith(IGNORE_PREFIXES) and filename.endswith('.srs'):
                 new_filepath = download_and_convert_rule(url, rules_dir)
                 if new_filepath:
-                    rule['url'] = f"https://testingcf.jsdelivr.net/gh/QuincySx/dotfiles@{new_filepath}"
+                    rel_path = new_filepath.removeprefix("repo/")
+                    rule['url'] = f"https://testingcf.jsdelivr.net/gh/QuincySx/dotfiles@metadata/{rel_path}"
 
             if new_filepath:
                 rule['format'] = 'binary' if new_filepath.endswith('.srs') else 'source'

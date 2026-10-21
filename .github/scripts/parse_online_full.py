@@ -19,9 +19,11 @@ def main():
         if not line.startswith(";"):
             urls = rules_pattern.findall(line)
             for url in urls:
+                filename = get_filename_from_url(url)
+                if filename.startswith("Ac-"):
+                    continue
                 response = fetch_url_content(url)
                 if response:
-                    filename = get_filename_from_url(url)
                     filepath = f"repo/rules/{filename}"
                     save_content_to_file(response.content, filepath)
 
