@@ -877,7 +877,6 @@
       {
         "rule_set": [
           "ac-xbox-proxy",
-          "ac-nintendo-proxy",
           "geosite-category-games"
         ],
         "outbound": "🎮 分流"
@@ -976,13 +975,6 @@
         "type": "remote",
         "format": "binary",
         "url": "https://testingcf.jsdelivr.net/gh/QuincySx/dotfiles@metadata/sing/rules/Ac-game-download.srs",
-        "download_detour": "direct-out"
-      },
-      {
-        "tag": "ac-nintendo-proxy",
-        "type": "remote",
-        "format": "binary",
-        "url": "https://testingcf.jsdelivr.net/gh/QuincySx/dotfiles@metadata/sing/rules/Ac-nintendo-proxy.srs",
         "download_detour": "direct-out"
       },
       {

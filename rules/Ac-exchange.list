@@ -1,7 +1,7 @@
 # Forum
 DOMAIN-SUFFIX,bitcointalk.org
 
-# Exchange
+# Exchange & L1/L2 Networks (Supplement to geosite-category-cryptocurrency)
 DOMAIN-SUFFIX,aex.com
 DOMAIN-SUFFIX,bibox.com
 DOMAIN-SUFFIX,bithumb.com
@@ -17,9 +17,7 @@ DOMAIN-SUFFIX,arbitrum.io
 DOMAIN-SUFFIX,poly.network
 DOMAIN-SUFFIX,boba.network
 
-# bina
-DOMAIN-SUFFIX,festream.saasexch.co
-DOMAIN-SUFFIX,binance.info
+# Binance CloudFront
 DOMAIN-SUFFIX,d3sknckuh1o9tg.cloudfront.net
 
 # Ethena
@@ -29,7 +27,6 @@ DOMAIN-SUFFIX,ethena.fi
 DOMAIN-SUFFIX,gate.ac
 
 # SafePal
-DOMAIN-SUFFIX,isafepal.com
 DOMAIN-KEYWORD,isafepal
 
 # imToken
@@ -41,7 +38,7 @@ DOMAIN-SUFFIX,tokenlon.im
 # CKB Wallet
 DOMAIN-SUFFIX,ckb.pw
 
-# ethereum
+# Ethereum
 DOMAIN-SUFFIX,nansen.ai
 DOMAIN-SUFFIX,ethgasstation.info
 DOMAIN-SUFFIX,watchtheburn.com
@@ -62,13 +59,9 @@ DOMAIN-SUFFIX,lightning.community
 DOMAIN-SUFFIX,acinq.co
 DOMAIN-SUFFIX,1ml.com
 
-# bitsquare
-DOMAIN-SUFFIX,bitsquare.io
-
 # Metamask
 DOMAIN-KEYWORD,metamask
 DOMAIN,token-api.metaswap.codefi.network
-DOMAIN,min-api.cryptocompare.com
 
 # NFT
 DOMAIN-SUFFIX,nftscan.com
@@ -83,10 +76,8 @@ DOMAIN-SUFFIX,nftgo.io
 DOMAIN-SUFFIX,filecoin.io
 DOMAIN-SUFFIX,docs.lotu.sh
 DOMAIN-SUFFIX,ipfs.io
-DOMAIN-SUFFIX,docs.ipfs.io
-DOMAIN-SUFFIX,discuss.ipfs.io
 
-# POOL
+# Pool
 DOMAIN-SUFFIX,btc.com
 DOMAIN-SUFFIX,f2pool.com
 DOMAIN-SUFFIX,cbeci.org
@@ -115,23 +106,19 @@ DOMAIN-SUFFIX,mdex.co
 DOMAIN-SUFFIX,mdex.one
 DOMAIN-SUFFIX,mdex.com
 DOMAIN-SUFFIX,mdex.me
-DOMAIN-SUFFIX,kswap.finance // kswap
+DOMAIN-SUFFIX,kswap.finance
 
 # Loopring L2
 DOMAIN-SUFFIX,loopring.org
 DOMAIN-SUFFIX,loopring.io
 DOMAIN-SUFFIX,loopring.network
 DOMAIN-SUFFIX,ipdata.co
-DOMAIN-SUFFIX,api.loopring.network
 
 # Zksync L2
 DOMAIN-SUFFIX,zkscan.io
 DOMAIN-SUFFIX,zksync.io
 DOMAIN-SUFFIX,zks.app
 DOMAIN-SUFFIX,zks.org
-
-# HyperLiquid
-DOMAIN-SUFFIX,hyperliquid.xyz
 
 # Pioneerex
 DOMAIN-SUFFIX,pioneerex.org

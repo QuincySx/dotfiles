@@ -11,7 +11,6 @@ DOMAIN-SUFFIX,tracking.miui.com
 # avl
 DOMAIN-SUFFIX,miui-fxcse.avlyun.com
 DOMAIN-SUFFIX,sdkconf.avlyun.com
-DOMAIN-SUFFIX,sdkconf.avlyun.com
 DOMAIN-SUFFIX,miav-cse.avlyun.com
 DOMAIN-SUFFIX,update.avlyun.sec.miui.com
 DOMAIN-SUFFIX,ixav-cse.avlyun.com
@@ -28,7 +27,6 @@ DOMAIN-SUFFIX,msmp.abchina.com.cn
 
 # Microsoft AppCenter telemetry
 DOMAIN-SUFFIX,appcenter.ms
-DOMAIN-SUFFIX,in.appcenter.ms
 
 # > 防止 Tg 加载转圈
 IP-CIDR,95.161.76.100/31,no-resolve

@@ -3,8 +3,6 @@ DOMAIN-SUFFIX,openai.com
 DOMAIN-SUFFIX,chatgpt.com
 DOMAIN-SUFFIX,openai.com.cdn.cloudflare.net
 DOMAIN-SUFFIX,openaicom.imgix.net
-# Pay https://twitter.com/haoel/status/1625117664896229377?s=20
-DOMAIN-SUFFIX,stripe.com
 DOMAIN-KEYWORD,chatgpt
 DOMAIN-KEYWORD,openai
 DOMAIN-KEYWORD,openaicom-api
@@ -27,10 +25,8 @@ DOMAIN-KEYWORD,apple-relay
 # >> com.apple.geod
 DOMAIN,gspe1-ssl.ls.apple.com
 
-
 # Cursor
 DOMAIN-SUFFIX,cursor.sh
-DOMAIN-SUFFIX,cursor.sh:443
 DOMAIN-SUFFIX,cursorapi.com
 
 # Google Antigravity
@@ -49,11 +45,6 @@ DOMAIN-SUFFIX,gemini.google.com
 DOMAIN-SUFFIX,generativeai.google
 DOMAIN-SUFFIX,proactivebackend-pa.googleapis.com
 DOMAIN-SUFFIX,apis.google.com
-
-# Anthropic Claude
-DOMAIN,cdn.usefathom.com
-DOMAIN-SUFFIX,anthropic.com
-DOMAIN-SUFFIX,claude.ai
 
 # OpenRouter & xAI (Grok)
 DOMAIN-SUFFIX,openrouter.ai

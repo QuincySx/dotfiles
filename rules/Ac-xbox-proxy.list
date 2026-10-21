@@ -1,23 +1,4 @@
-# Bethesda
-DOMAIN-SUFFIX,beth.games
-DOMAIN-SUFFIX,bethesda.net
-DOMAIN-SUFFIX,bethesdagamestudios.com
-DOMAIN-SUFFIX,bethsoft.com
-
-# Doom
-DOMAIN-SUFFIX,doom.com
-
-# The Elder Scrolls
-DOMAIN-SUFFIX,elderscrolls.com
-
-# Minecraft
-DOMAIN-SUFFIX,callersbane.com
-DOMAIN-SUFFIX,minecraft.net
-DOMAIN-SUFFIX,minecraftshop.com
-DOMAIN-SUFFIX,mojang.com
-
-# Game PUBG
-DOMAIN-SUFFIX,playbattlegrounds.com
+# Game PUBG (Supplement to geosite-category-games)
 DOMAIN-SUFFIX,pubgbluehole.com
 DOMAIN-SUFFIX,battleye.com
 DOMAIN-SUFFIX,pubgha.com

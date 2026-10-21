@@ -3,20 +3,16 @@ DOMAIN-SUFFIX,dl.google.com
 DOMAIN-SUFFIX,tools.google.com
 DOMAIN-SUFFIX,tools.l.google.com
 
-# Google Login
+# Google Login & Fonts
 DOMAIN-SUFFIX,gstatic.com
-DOMAIN-SUFFIX,fonts.gstatic.com
 
-# Chrome Upgrade
+# Chrome Upgrade & Google Play
 DOMAIN-SUFFIX,fonts.googleapis.com
 DOMAIN-SUFFIX,update.googleapis.com
-
-# Google Play
 DOMAIN-SUFFIX,android.googleapis.com
 DOMAIN-SUFFIX,play.googleapis.com
 DOMAIN-SUFFIX,services.googleapis.cn
 DOMAIN-SUFFIX,xn--ngstr-lra8j.com
-# 2023 new
 DOMAIN-SUFFIX,xn--ngstr-cn-8za9o.com
 
 # Google Tag Manager
@@ -29,21 +25,11 @@ DOMAIN-SUFFIX,piclist.cn
 DOMAIN-SUFFIX,exitgames.com
 IP-CIDR,92.38.173.0/24,no-resolve
 
-# Futu
-DOMAIN,cdn.futustatic.com
+# Futu 富途 / Moomoo
 DOMAIN,cg.play-analytics.com
-DOMAIN,qtcard.futunn.com
-DOMAIN,qtcardfthk.futufin.com
-DOMAIN,openapi.futunn.com
-DOMAIN,api.futunn.com
-DOMAIN,api5.futunn.com
-DOMAIN,trade.futunn.com
-DOMAIN,support.futunn.com
-DOMAIN,download.futunn.com
 DOMAIN-SUFFIX,futunn.com
 DOMAIN-SUFFIX,futuhk.com
 DOMAIN-SUFFIX,futu.link
-DOMAIN-SUFFIX,futunn.com
 DOMAIN-SUFFIX,futuhn.com
 DOMAIN-SUFFIX,futu.com
 DOMAIN-SUFFIX,futu0.com
@@ -65,20 +51,23 @@ DOMAIN-SUFFIX,futuholdings.com
 DOMAIN-SUFFIX,futuesop.com
 DOMAIN-SUFFIX,futubull.cn
 DOMAIN-SUFFIX,futuchain.com
+DOMAIN-SUFFIX,futustatic.com
+DOMAIN-SUFFIX,futuau.com
+DOMAIN-SUFFIX,futuhkapp.com
+DOMAIN-SUFFIX,fututrade.com
+DOMAIN-SUFFIX,fututrustee.com
 DOMAIN-SUFFIX,moomoo.com
+DOMAIN-SUFFIX,api.moomoobull.com
+DOMAIN-SUFFIX,moomooequity.com
+DOMAIN-SUFFIX,moomootrustee.com
+DOMAIN-SUFFIX,9oju31.launches.appsflyersdk.com
+DOMAIN-SUFFIX,sgqt0j.launches.appsflyersdk.com
+DOMAIN-SUFFIX,shortconn.im.qcloud.com
+
+# Longbridge 长桥
 DOMAIN-SUFFIX,lbctrl.com
 DOMAIN-SUFFIX,lbkrs.com
 DOMAIN-SUFFIX,wbrks.com
-
-# changqiao
-DOMAIN,quote.longbridge.global
-DOMAIN,trade.longportapp.com
-DOMAIN,openapi.longbridge.com
-DOMAIN,openapi-quote.longbridge.com
-DOMAIN,openapi-trade.longbridge.com
-DOMAIN,openapi.longbridge.cn
-DOMAIN,openapi-quote.longbridge.cn
-DOMAIN,openapi-trade.longbridge.cn
 DOMAIN-SUFFIX,longportapp.cn
 DOMAIN-SUFFIX,longportapp.com
 DOMAIN-SUFFIX,longbridgeapp.com
@@ -89,7 +78,7 @@ DOMAIN-SUFFIX,longbridge.global
 DOMAIN-SUFFIX,longbridge.cloud
 DOMAIN-SUFFIX,longbridge.sg
 
-# laohu
+# Tiger 老虎证券
 DOMAIN-SUFFIX,itiger.com
 DOMAIN-SUFFIX,itigerup.com
 DOMAIN-SUFFIX,laohu8.com
@@ -104,23 +93,8 @@ DOMAIN-SUFFIX,tigerbrokers.com
 DOMAIN-SUFFIX,tigerbrokers.net
 DOMAIN-SUFFIX,tigerbrokers.nz
 
-# 嘉信
+# Schwab 嘉信
 DOMAIN-SUFFIX,schwab.com
 DOMAIN-SUFFIX,schwab.com.cn
 DOMAIN-SUFFIX,schwab.com.hk
 DOMAIN-SUFFIX,schwab.co.uk
-DOMAIN-SUFFIX,futustatic.com
-DOMAIN-SUFFIX,futuau.com
-DOMAIN-SUFFIX,futuhkapp.com
-DOMAIN-SUFFIX,fututrade.com
-DOMAIN-SUFFIX,fututrustee.com
-DOMAIN-SUFFIX,cdn.futustatic.com
-DOMAIN-SUFFIX,api.moomoobull.com
-DOMAIN-SUFFIX,moomooequity.com
-DOMAIN-SUFFIX,moomootrustee.com
-DOMAIN-SUFFIX,9oju31.launches.appsflyersdk.com
-DOMAIN-SUFFIX,sgqt0j.launches.appsflyersdk.com
-DOMAIN-SUFFIX,shortconn.im.qcloud.com
-DOMAIN-SUFFIX,api.lbkrs.com
-DOMAIN-SUFFIX,api-gl.lbkrs.com
-
