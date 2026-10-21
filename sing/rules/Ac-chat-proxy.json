@@ -9,9 +9,6 @@
         "stripe.com",
         "oaistatic.com",
         "oaiusercontent.com",
-        "apple-relay.mask.apple-dns.net",
-        "apple-relay.cloudflare.com",
-        "apple-relay.apple.com",
         "cursor.sh",
         "cursor.sh:443",
         "cursorapi.com",
@@ -45,6 +42,12 @@
         "apple-relay"
       ],
       "domain": [
+        "apple-relay.fastly-edge.com",
+        "apple-relay.mask.apple-dns.net",
+        "apple-relay.cloudflare.com",
+        "apple-relay.apple.com",
+        "cp4.cloudflare.com",
+        "gspe1-ssl.ls.apple.com",
         "ai.google.dev",
         "alkalimakersuite-pa.clients6.google.com",
         "makersuite.google.com",

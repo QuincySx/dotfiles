@@ -124,6 +124,20 @@ proxy-groups:
       - 🇺🇳 其他节点
       - DIRECT
 
+  - name: 🤖 Claude分流
+    type: select
+    proxies:
+      - 🇯🇵 日本节点
+      - 🚀 手选节点
+      - 🇭🇰 香港自动节点
+      - 🇭🇰 香港节点
+      - 🏴‍☠️ 自建节点
+      - 🇨🇳 台湾节点
+      - 🇸🇬 狮城节点
+      - 🇺🇲 美国节点
+      - 🇺🇳 其他节点
+      - DIRECT
+
   - name: 🚀 CDN 分流
     type: select
     proxies:
@@ -139,7 +153,7 @@ proxy-groups:
       - 🇺🇳 其他节点
       - DIRECT
 
-  - name: 🎥 奈飞、Disney、Spotify 分流
+  - name: 🎥 影视流媒体分流
     type: select
     proxies:
       - 🎥 奈飞节点
@@ -150,6 +164,7 @@ proxy-groups:
       - 🇸🇬 狮城节点
       - 🇯🇵 日本节点
       - 🇺🇲 美国节点
+      - 🏴‍☠️ 自建节点
       - 🇺🇳 其他节点
       - DIRECT
 
@@ -422,6 +437,12 @@ rule-providers:
     behavior: classical
     format: text
     url: "https://testingcf.jsdelivr.net/gh/QuincySx/dotfiles@metadata/rules/Ac-chat-proxy.list"
+  ac-claude-proxy:
+    type: http
+    interval: 86400
+    behavior: classical
+    format: text
+    url: "https://testingcf.jsdelivr.net/gh/QuincySx/dotfiles@metadata/rules/Ac-claude-proxy.list"
   ac-china:
     type: http
     interval: 86400
@@ -544,6 +565,12 @@ rule-providers:
     behavior: domain
     format: text
     url: "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@meta/geo/geosite/disney.list"
+  geosite-youtube:
+    type: http
+    interval: 86400
+    behavior: domain
+    format: text
+    url: "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@meta/geo/geosite/youtube.list"
   geosite-microsoft:
     type: http
     interval: 86400
@@ -648,21 +675,14 @@ rules:
   # 私有 IP 直连
   - GEOIP,private,DIRECT,no-resolve
 
-  # OpenAI / GPT
+  # Claude / OpenAI / GPT
+  - RULE-SET,ac-claude-proxy,🤖 Claude分流
   - RULE-SET,ac-chat-proxy,🤖 GPT分流
   - RULE-SET,geosite-openai,🤖 GPT分流
 
   # 国内直连
   - RULE-SET,ac-china,DIRECT
   - RULE-SET,ac-custom-direct,DIRECT
-
-  # 自定义代理
-  - RULE-SET,ac-custom-proxy,🚀 手选节点
-
-  # CDN 代理
-  - RULE-SET,cdn-non-ip,🚀 CDN 分流
-  - RULE-SET,cdn-domainset,🚀 CDN 分流
-  - RULE-SET,ac-cdn-proxy,🚀 CDN 分流
 
   # Apple 直连
   - RULE-SET,apple-cn,🍎 直连分流
@@ -679,18 +699,27 @@ rules:
   - RULE-SET,ac-steam-cn,🎮 直连分流
   - RULE-SET,geosite-games-cn,🎮 直连分流
 
-  # 奈飞、Disney、Spotify
-  - RULE-SET,geoip-netflix,🎥 奈飞、Disney、Spotify 分流,no-resolve
-  - RULE-SET,geosite-netflix,🎥 奈飞、Disney、Spotify 分流
-  - RULE-SET,geosite-disney,🎥 奈飞、Disney、Spotify 分流
-  - RULE-SET,geosite-spotify,🎥 奈飞、Disney、Spotify 分流
+  # 影视流媒体 (奈飞、Disney、YouTube)
+  - RULE-SET,geoip-netflix,🎥 影视流媒体分流,no-resolve
+  - RULE-SET,geosite-netflix,🎥 影视流媒体分流
+  - RULE-SET,geosite-disney,🎥 影视流媒体分流
+  - RULE-SET,geosite-youtube,🎥 影视流媒体分流
+
+  # TikTok & Spotify (默认美国节点)
+  - RULE-SET,geosite-tiktok,🎥 TikTok分流
+  - RULE-SET,geosite-spotify,🎥 TikTok分流
+  - DOMAIN-SUFFIX,capcut.com,🎥 TikTok分流
+  - DOMAIN-SUFFIX,capcutapi.com,🎥 TikTok分流
+  - DOMAIN-SUFFIX,capcutapi.us,🎥 TikTok分流
+  - DOMAIN-SUFFIX,capcutcdn-us.com,🎥 TikTok分流
+  - DOMAIN-SUFFIX,byteoversea.net,🎥 TikTok分流
+  - DOMAIN-SUFFIX,byteeffecttos-g.com,🎥 TikTok分流
+  - DOMAIN-SUFFIX,ibyteimg.com,🎥 TikTok分流
+  - DOMAIN-SUFFIX,ibytedtos.com,🎥 TikTok分流
 
   # 交易所
   - RULE-SET,ac-exchange,🏦 交易所分流
   - RULE-SET,geosite-category-cryptocurrency,🏦 交易所分流
-
-  # TikTok
-  - RULE-SET,geosite-tiktok,🎥 TikTok分流
 
   # Apple 代理
   - RULE-SET,ac-apple-proxy,🍎 代理分流
@@ -704,6 +733,17 @@ rules:
   # 游戏 (非国内)
   - RULE-SET,ac-xbox-proxy,🎮 分流
   - RULE-SET,geosite-category-games,🎮 分流
+
+  # 自定义代理与 Google
+  - DOMAIN-SUFFIX,google.com,🚀 手选节点
+  - DOMAIN-SUFFIX,google.dev,🚀 手选节点
+  - DOMAIN-SUFFIX,googleapis.com,🚀 手选节点
+  - RULE-SET,ac-custom-proxy,🚀 手选节点
+
+  # CDN 代理 (置于具体业务分流之后，防止截胡)
+  - RULE-SET,cdn-non-ip,🚀 CDN 分流
+  - RULE-SET,cdn-domainset,🚀 CDN 分流
+  - RULE-SET,ac-cdn-proxy,🚀 CDN 分流
 
   # 国内域名直连
   - RULE-SET,geosite-cn,DIRECT

@@ -10,7 +10,23 @@
         "cloudflare-ech.com",
         "larksuitecdn.com",
         "repo.maven.apache.org",
-        "blob.core.windows.net"
+        "blob.core.windows.net",
+        "docker.com",
+        "docker.io",
+        "debian.org",
+        "ubuntu.com",
+        "alpinelinux.org",
+        "yarnpkg.com",
+        "npmjs.org",
+        "npmjs.com",
+        "pythonhosted.org",
+        "pypi.org",
+        "crates.io",
+        "rust-lang.org",
+        "pytorch.org",
+        "lmstudio.ai",
+        "orbstack.dev",
+        "cloudflarestorage.com"
       ],
       "domain_keyword": [
         "-cdn.coze.com"

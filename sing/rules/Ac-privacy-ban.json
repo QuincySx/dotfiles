@@ -17,7 +17,9 @@
         "logupdate.avlyun.sec.miui.com",
         "wetype.weixin.qq.com",
         "urlsec.qq.com",
-        "msmp.abchina.com.cn"
+        "msmp.abchina.com.cn",
+        "appcenter.ms",
+        "in.appcenter.ms"
       ],
       "ip_cidr": [
         "95.161.76.100/31",

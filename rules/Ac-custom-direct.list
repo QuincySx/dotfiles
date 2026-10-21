@@ -1,4 +1,13 @@
 # Vrmoo download
 DOMAIN-SUFFIX,3ppp.top
 
+# Apple iCloud CDN
 DOMAIN-SUFFIX,icloud-content.com
+
+# HuggingFace & Mirror CDN
+DOMAIN-SUFFIX,hf.co
+DOMAIN-SUFFIX,daocloud.vip
+
+# Domestic VOD CDN
+DOMAIN-SUFFIX,ffzy-bofang.com
+DOMAIN-SUFFIX,xhxcz.com
