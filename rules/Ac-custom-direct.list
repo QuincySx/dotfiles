@@ -1,13 +1,9 @@
 # Vrmoo download
 DOMAIN-SUFFIX,3ppp.top
 
-# Apple Static & Storage CDN (Direct)
+# Apple Static & Storage CDN (Direct - CN Telecom & HK Apple PoP)
 DOMAIN-SUFFIX,icloud-content.com
 DOMAIN-SUFFIX,mzstatic.com
-
-# Domestic Mirrors & Drivers CDN
-DOMAIN-SUFFIX,daocloud.vip
-DOMAIN,cn.download.nvidia.com
 
 # Domestic GitHub Acceleration Proxies
 DOMAIN-SUFFIX,gh-proxy.org
