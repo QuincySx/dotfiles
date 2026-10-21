@@ -9,5 +9,7 @@ DOMAIN-SUFFIX,awmdm.com
 DOMAIN-SUFFIX,pwc.com
 DOMAIN-SUFFIX,pwcinternal.com
 
-# HuggingFace XetHub CloudFront (Direct Reachable)
+# HuggingFace Storage CDNs (CN Probes Verified Direct Reachable)
 DOMAIN-SUFFIX,xethub.hf.co
+DOMAIN-SUFFIX,cdn.hf.co
+DOMAIN-SUFFIX,cdn-lfs.hf.co

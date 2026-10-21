@@ -16,9 +16,6 @@ DOMAIN-SUFFIX,isteed.cc
 DOMAIN-SUFFIX,xi-xu.me
 DOMAIN-SUFFIX,boki.moe
 
-# Corporate Internal VPN (Avoid Double Proxy)
-DOMAIN-SUFFIX,onekey-internal.com
-
 # HK Banks & Domestic E-Commerce (Futu Excluded)
 DOMAIN-SUFFIX,bochk.com
 DOMAIN-SUFFIX,hsbc.com.hk
@@ -45,4 +42,3 @@ DOMAIN-SUFFIX,tscjzy.com
 DOMAIN-SUFFIX,ypfbj.com
 DOMAIN-SUFFIX,libvio.pw
 DOMAIN-SUFFIX,libvio.mov
-DOMAIN-SUFFIX,muou.site
