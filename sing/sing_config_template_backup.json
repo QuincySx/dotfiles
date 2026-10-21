@@ -1121,7 +1121,7 @@
         "tag": "apple-services",
         "type": "remote",
         "format": "binary",
-        "url": "https://testingcf.jsdelivr.net/gh/yyhhyyyyyy/sing-box-ruleset@main/non_ip/apple_services.srs",
+        "url": "https://testingcf.jsdelivr.net/gh/QuincySx/dotfiles@metadata/sing/rules/apple_services.srs",
         "download_detour": "direct-out"
       },
       {
@@ -1212,14 +1212,14 @@
         "tag": "proxy-domain-download",
         "type": "remote",
         "format": "binary",
-        "url": "https://testingcf.jsdelivr.net/gh/yyhhyyyyyy/sing-box-ruleset@main/domainset/download.srs",
+        "url": "https://testingcf.jsdelivr.net/gh/QuincySx/dotfiles@metadata/sing/rules/domainset/download.srs",
         "download_detour": "direct-out"
       },
       {
         "tag": "proxy-ip-download",
         "type": "remote",
         "format": "binary",
-        "url": "https://testingcf.jsdelivr.net/gh/yyhhyyyyyy/sing-box-ruleset@main/non_ip/download.srs",
+        "url": "https://testingcf.jsdelivr.net/gh/QuincySx/dotfiles@metadata/sing/rules/download.srs",
         "download_detour": "direct-out"
       }
     ]

@@ -1,35 +1,31 @@
 {
   "rules": [
     {
-      "domain": [
-        "download-cdn.jetbrains.com"
-      ],
       "domain_suffix": [
-        "3ppp.top",
         "archive.org",
         "cloudflare-ech.com",
         "larksuitecdn.com",
-        "repo.maven.apache.org",
-        "blob.core.windows.net",
         "docker.com",
         "docker.io",
-        "debian.org",
-        "ubuntu.com",
-        "alpinelinux.org",
-        "yarnpkg.com",
         "npmjs.org",
         "npmjs.com",
-        "pythonhosted.org",
-        "pypi.org",
-        "crates.io",
         "rust-lang.org",
-        "pytorch.org",
-        "lmstudio.ai",
         "orbstack.dev",
-        "cloudflarestorage.com"
+        "proxmox.com",
+        "hf.co",
+        "huggingface.co",
+        "lmstudio.ai",
+        "opencode.ai",
+        "anythingllm.com",
+        "gvt1.com",
+        "googlezip.net",
+        "blackmagicdesign.com"
       ],
       "domain_keyword": [
         "-cdn.coze.com"
+      ],
+      "domain": [
+        "download.live.ledger.com"
       ]
     }
   ],

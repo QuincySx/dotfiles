@@ -10,7 +10,6 @@
         "tracking.miui.com",
         "miui-fxcse.avlyun.com",
         "sdkconf.avlyun.com",
-        "sdkconf.avlyun.com",
         "miav-cse.avlyun.com",
         "update.avlyun.sec.miui.com",
         "ixav-cse.avlyun.com",
@@ -18,8 +17,7 @@
         "wetype.weixin.qq.com",
         "urlsec.qq.com",
         "msmp.abchina.com.cn",
-        "appcenter.ms",
-        "in.appcenter.ms"
+        "appcenter.ms"
       ],
       "ip_cidr": [
         "95.161.76.100/31",

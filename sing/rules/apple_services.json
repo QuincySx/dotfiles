@@ -1,0 +1,32 @@
+{
+  "version": 2,
+  "rules": [
+    {
+      "domain": [
+        "7h15.ru1353t.1s.m4d3.by.5ukk4w.skk.moe"
+      ],
+      "domain_suffix": [
+        "7h15.ru1353t.1s.m4d3.by.5ukk4w.skk.moe",
+        "me.com",
+        "apple.co",
+        "apple.com",
+        "appsto.re",
+        "apple.news",
+        "icloud.com",
+        "itunes.com",
+        "aaplimg.com",
+        "appstore.com",
+        "apple-dns.net",
+        "cdn-apple.com",
+        "apple-mapkit.com",
+        "apple-cloudkit.com",
+        "icloud-content.com",
+        "organicfruitapps.com",
+        "push-apple.com.akadns.net"
+      ],
+      "ip_cidr": [
+        "17.0.0.0/8"
+      ]
+    }
+  ]
+}

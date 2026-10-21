@@ -6,11 +6,9 @@
         "chatgpt.com",
         "openai.com.cdn.cloudflare.net",
         "openaicom.imgix.net",
-        "stripe.com",
         "oaistatic.com",
         "oaiusercontent.com",
         "cursor.sh",
-        "cursor.sh:443",
         "cursorapi.com",
         "antigravity-unleash.goog",
         "antigravity.google",
@@ -22,8 +20,8 @@
         "generativeai.google",
         "proactivebackend-pa.googleapis.com",
         "apis.google.com",
-        "anthropic.com",
-        "claude.ai",
+        "openrouter.ai",
+        "x.ai",
         "bing.com",
         "outlook.com",
         "grazie.ai",
@@ -50,8 +48,7 @@
         "gspe1-ssl.ls.apple.com",
         "ai.google.dev",
         "alkalimakersuite-pa.clients6.google.com",
-        "makersuite.google.com",
-        "cdn.usefathom.com"
+        "makersuite.google.com"
       ]
     }
   ],

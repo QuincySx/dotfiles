@@ -17,12 +17,9 @@
         "arbitrum.io",
         "poly.network",
         "boba.network",
-        "festream.saasexch.co",
-        "binance.info",
         "d3sknckuh1o9tg.cloudfront.net",
         "ethena.fi",
         "gate.ac",
-        "isafepal.com",
         "token.im",
         "tongke.top",
         "tongke.co",
@@ -45,7 +42,6 @@
         "lightning.community",
         "acinq.co",
         "1ml.com",
-        "bitsquare.io",
         "nftscan.com",
         "makersplace.com",
         "nonfungible.com",
@@ -56,8 +52,6 @@
         "filecoin.io",
         "docs.lotu.sh",
         "ipfs.io",
-        "docs.ipfs.io",
-        "discuss.ipfs.io",
         "btc.com",
         "f2pool.com",
         "cbeci.org",
@@ -83,17 +77,15 @@
         "mdex.one",
         "mdex.com",
         "mdex.me",
-        "kswap.finance // kswap",
+        "kswap.finance",
         "loopring.org",
         "loopring.io",
         "loopring.network",
         "ipdata.co",
-        "api.loopring.network",
         "zkscan.io",
         "zksync.io",
         "zks.app",
         "zks.org",
-        "hyperliquid.xyz",
         "pioneerex.org"
       ],
       "domain_keyword": [
@@ -102,8 +94,7 @@
         "uniswap"
       ],
       "domain": [
-        "token-api.metaswap.codefi.network",
-        "min-api.cryptocompare.com"
+        "token-api.metaswap.codefi.network"
       ]
     }
   ],
