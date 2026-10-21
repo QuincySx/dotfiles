@@ -55,6 +55,10 @@ DOMAIN,cdn.usefathom.com
 DOMAIN-SUFFIX,anthropic.com
 DOMAIN-SUFFIX,claude.ai
 
+# OpenRouter & xAI (Grok)
+DOMAIN-SUFFIX,openrouter.ai
+DOMAIN-SUFFIX,x.ai
+
 # New Bing
 DOMAIN-SUFFIX,bing.com
 DOMAIN-SUFFIX,outlook.com

@@ -1,5 +1,3 @@
-DOMAIN,download-cdn.jetbrains.com
-
 # Vrmoo download
 DOMAIN-SUFFIX,3ppp.top
 DOMAIN-SUFFIX,archive.org
@@ -9,28 +7,24 @@ DOMAIN-SUFFIX,cloudflare-ech.com
 DOMAIN-SUFFIX,larksuitecdn.com
 DOMAIN-KEYWORD,-cdn.coze.com
 
-# Maven
-DOMAIN-SUFFIX,repo.maven.apache.org
-
-# Microsoft CDN
-DOMAIN-SUFFIX,blob.core.windows.net
-
-# Container & Linux Mirrors
+# Container, Virtualization & Package Toolchains (Not in skk download.srs)
 DOMAIN-SUFFIX,docker.com
 DOMAIN-SUFFIX,docker.io
-DOMAIN-SUFFIX,debian.org
-DOMAIN-SUFFIX,ubuntu.com
-DOMAIN-SUFFIX,alpinelinux.org
-
-# Package Registries & AI Model Downloads
-DOMAIN-SUFFIX,yarnpkg.com
 DOMAIN-SUFFIX,npmjs.org
 DOMAIN-SUFFIX,npmjs.com
-DOMAIN-SUFFIX,pythonhosted.org
-DOMAIN-SUFFIX,pypi.org
-DOMAIN-SUFFIX,crates.io
 DOMAIN-SUFFIX,rust-lang.org
-DOMAIN-SUFFIX,pytorch.org
-DOMAIN-SUFFIX,lmstudio.ai
 DOMAIN-SUFFIX,orbstack.dev
-DOMAIN-SUFFIX,cloudflarestorage.com
+DOMAIN-SUFFIX,proxmox.com
+
+# AI Model & Local LLM Tool Downloads (Bulk Downloads)
+DOMAIN-SUFFIX,hf.co
+DOMAIN-SUFFIX,huggingface.co
+DOMAIN-SUFFIX,lmstudio.ai
+DOMAIN-SUFFIX,opencode.ai
+DOMAIN-SUFFIX,anythingllm.com
+
+# Google & Commercial Software Bulk Downloads
+DOMAIN-SUFFIX,gvt1.com
+DOMAIN-SUFFIX,googlezip.net
+DOMAIN-SUFFIX,blackmagicdesign.com
+DOMAIN,download.live.ledger.com

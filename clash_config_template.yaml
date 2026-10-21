@@ -61,13 +61,13 @@ dns:
   nameserver-policy:
     'rule-set:ac-chat-proxy,geosite-openai':
       - 'https://dns.google/dns-query#🚀 手选节点'
-    'rule-set:apple-cn,apple-cn-cdn,ac-china,geosite-cn':
+    'rule-set:apple-cn,apple-cn-cdn,ac-china,ac-custom-direct,geosite-cn':
       - 'quic://dns.alidns.com'
       - 'https://doh.pub/dns-query'
     'rule-set:microsoft-cn-cdn,geosite-microsoft-cn':
       - 'quic://dns.alidns.com'
       - 'https://doh.pub/dns-query'
-    'rule-set:cdn-domainset,ac-cdn-proxy':
+    'rule-set:cdn-domainset,download-domainset,ac-cdn-proxy':
       - 'https://dns.google/dns-query#🚀 手选节点'
 
 # url 里填写自己的订阅
@@ -626,6 +626,12 @@ rule-providers:
     behavior: domain
     format: text
     url: "https://ruleset.skk.moe/Clash/domainset/apple_cdn.txt"
+  apple-services:
+    type: http
+    interval: 43200
+    behavior: classical
+    format: text
+    url: "https://ruleset.skk.moe/Clash/non_ip/apple_services.txt"
   microsoft-cn-cdn:
     type: http
     interval: 43200
@@ -644,6 +650,18 @@ rule-providers:
     behavior: classical
     format: text
     url: "https://ruleset.skk.moe/Clash/non_ip/cdn.txt"
+  download-domainset:
+    type: http
+    interval: 43200
+    behavior: domain
+    format: text
+    url: "https://ruleset.skk.moe/Clash/domainset/download.txt"
+  download-non-ip:
+    type: http
+    interval: 43200
+    behavior: classical
+    format: text
+    url: "https://ruleset.skk.moe/Clash/non_ip/download.txt"
 
   # --- MetaCubeX geoip (ipcidr) ---
   geoip-netflix:
@@ -723,6 +741,7 @@ rules:
 
   # Apple 代理
   - RULE-SET,ac-apple-proxy,🍎 代理分流
+  - RULE-SET,apple-services,🍎 代理分流
 
   # GitHub
   - RULE-SET,geosite-github,🚀 手选节点
@@ -740,9 +759,11 @@ rules:
   - DOMAIN-SUFFIX,googleapis.com,🚀 手选节点
   - RULE-SET,ac-custom-proxy,🚀 手选节点
 
-  # CDN 代理 (置于具体业务分流之后，防止截胡)
+  # CDN 与大文件下载代理 (置于具体业务分流之后，防止截胡)
   - RULE-SET,cdn-non-ip,🚀 CDN 分流
   - RULE-SET,cdn-domainset,🚀 CDN 分流
+  - RULE-SET,download-non-ip,🚀 CDN 分流
+  - RULE-SET,download-domainset,🚀 CDN 分流
   - RULE-SET,ac-cdn-proxy,🚀 CDN 分流
 
   # 国内域名直连

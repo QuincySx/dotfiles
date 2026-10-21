@@ -103,6 +103,8 @@
         "rule_set": [
           "proxy-ip-cdn",
           "proxy-domain-cdn",
+          "proxy-ip-download",
+          "proxy-domain-download",
           "ac-cdn-proxy"
         ],
         "server": "proxyDns",
@@ -857,7 +859,8 @@
       },
       {
         "rule_set": [
-          "geosite-apple-proxy"
+          "geosite-apple-proxy",
+          "apple-services"
         ],
         "outbound": "🍎 代理分流"
       },
@@ -897,6 +900,8 @@
         "rule_set": [
           "proxy-ip-cdn",
           "proxy-domain-cdn",
+          "proxy-ip-download",
+          "proxy-domain-download",
           "ac-cdn-proxy"
         ],
         "outbound": "🚀 CDN 分流"
@@ -1121,6 +1126,13 @@
         "download_detour": "direct-out"
       },
       {
+        "tag": "apple-services",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://testingcf.jsdelivr.net/gh/yyhhyyyyyy/sing-box-ruleset@main/non_ip/apple_services.srs",
+        "download_detour": "direct-out"
+      },
+      {
         "tag": "geosite-microsoft",
         "type": "remote",
         "format": "binary",
@@ -1202,6 +1214,20 @@
         "type": "remote",
         "format": "binary",
         "url": "https://testingcf.jsdelivr.net/gh/QuincySx/dotfiles@metadata/sing/rules/cdn.srs",
+        "download_detour": "direct-out"
+      },
+      {
+        "tag": "proxy-domain-download",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://testingcf.jsdelivr.net/gh/yyhhyyyyyy/sing-box-ruleset@main/domainset/download.srs",
+        "download_detour": "direct-out"
+      },
+      {
+        "tag": "proxy-ip-download",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://testingcf.jsdelivr.net/gh/yyhhyyyyyy/sing-box-ruleset@main/non_ip/download.srs",
         "download_detour": "direct-out"
       }
     ]

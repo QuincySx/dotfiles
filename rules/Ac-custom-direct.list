@@ -1,13 +1,48 @@
 # Vrmoo download
 DOMAIN-SUFFIX,3ppp.top
 
-# Apple iCloud CDN
+# Apple Static & Storage CDN (Direct)
 DOMAIN-SUFFIX,icloud-content.com
+DOMAIN-SUFFIX,mzstatic.com
 
-# HuggingFace & Mirror CDN
-DOMAIN-SUFFIX,hf.co
+# Domestic Mirrors & Drivers CDN
 DOMAIN-SUFFIX,daocloud.vip
+DOMAIN,cn.download.nvidia.com
 
-# Domestic VOD CDN
+# Domestic GitHub Acceleration Proxies
+DOMAIN-SUFFIX,gh-proxy.org
+DOMAIN-SUFFIX,ghfast.top
+DOMAIN-SUFFIX,isteed.cc
+DOMAIN-SUFFIX,xi-xu.me
+DOMAIN-SUFFIX,boki.moe
+
+# Corporate Internal VPN (Avoid Double Proxy)
+DOMAIN-SUFFIX,onekey-internal.com
+
+# HK Banks & Domestic E-Commerce (Futu Excluded)
+DOMAIN-SUFFIX,bochk.com
+DOMAIN-SUFFIX,hsbc.com.hk
+DOMAIN-SUFFIX,za.group
+DOMAIN-SUFFIX,alipay.hk
+DOMAIN-SUFFIX,tmall.hk
+
+# Domestic VOD & Resource CDNs
 DOMAIN-SUFFIX,ffzy-bofang.com
 DOMAIN-SUFFIX,xhxcz.com
+DOMAIN-SUFFIX,ryplay11.com
+DOMAIN-SUFFIX,ryplay17.com
+DOMAIN-SUFFIX,modujx11.com
+DOMAIN-SUFFIX,dytt-tvs.com
+DOMAIN-SUFFIX,dytt-luck.com
+DOMAIN-SUFFIX,fdtnbv.com
+DOMAIN-SUFFIX,baofeng11.com
+DOMAIN-SUFFIX,luojiangping.com
+DOMAIN-SUFFIX,cnshyrw.com
+DOMAIN-SUFFIX,maowushi.com
+DOMAIN-SUFFIX,myffun.com
+DOMAIN-SUFFIX,360zyzz.com
+DOMAIN-SUFFIX,tscjzy.com
+DOMAIN-SUFFIX,ypfbj.com
+DOMAIN-SUFFIX,libvio.pw
+DOMAIN-SUFFIX,libvio.mov
+DOMAIN-SUFFIX,muou.site
