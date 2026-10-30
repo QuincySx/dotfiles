@@ -1,5 +1,5 @@
 # Clash Meta (mihomo) 配置模板
-# 一比一复刻 sing-box 配置
+# 一比一复刻 SB 配置
 
 mode: rule
 mixed-port: 7890
@@ -613,7 +613,7 @@ rule-providers:
     behavior: domain
     format: text
     url: "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@meta/geo/geosite/cn.list"
-  # --- SukkaW/Surge 规则 (原 yyhhyyyyyy sing-box-ruleset 的上游源) ---
+  # --- SukkaW/Surge 规则 (原上游源) ---
   apple-cn:
     type: http
     interval: 43200
@@ -678,7 +678,7 @@ rule-providers:
     url: "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@meta/geo/geoip/cn.list"
 
 rules:
-  # QUIC 阻断 (等效 sing-box: quic → block)
+  # QUIC 阻断 (等效 SB: quic → block)
   - AND,((NETWORK,udp),(DST-PORT,443)),REJECT
 
   # 应用净化

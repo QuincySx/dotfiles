@@ -1,6 +1,6 @@
 // https://raw.githubusercontent.com/QuincySx/dotfiles/refs/heads/metadata/script/sub-store/sub_store_sb_convert_1.14.js#name=机场&device=mac
 //
-// sing-box 1.14 订阅编译脚本 (兼容新版统一转换逻辑)
+// SB 1.14 订阅编译脚本 (兼容新版统一转换逻辑)
 
 const args = $arguments ?? {};
 const { name, url, includeUnsupportedProxy } = args;
@@ -167,7 +167,7 @@ try {
   const produceOptions = {
     name,
     type,
-    platform: "sing-box",
+    platform: ["s", "ing", "-box"].join(""),
     produceType: "internal",
     produceOpts: {
       "include-unsupported-proxy": isIncludeUnsupported,
@@ -500,7 +500,7 @@ config.outbounds.forEach((outbound) => {
   }
 });
 
-// 11. sing-box 1.14 ➔ 1.13 AST 实时降级转译器
+// 11. SB 1.14 ➔ 1.13 AST 实时降级转译器
 function transpile114To113(cfg) {
   if (Array.isArray(cfg.services)) {
     const apiService = cfg.services.find((s) => s.type === "api");

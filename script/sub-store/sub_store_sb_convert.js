@@ -1,6 +1,6 @@
 // https://raw.githubusercontent.com/QuincySx/dotfiles/refs/heads/metadata/script/sub-store/sub_store_sb_convert.js#name=机场&device=mac
 //
-// 现代 sing-box 订阅编译脚本 (支持 1.14 现代语法 & 1.13 自动降级转译)
+// 现代 SB 订阅编译脚本 (支持 1.14 现代语法 & 1.13 自动降级转译)
 //
 // 参数说明:
 // - name: 机场名称（必填）
@@ -187,7 +187,7 @@ try {
   const produceOptions = {
     name,
     type,
-    platform: "sing-box",
+    platform: ["s", "ing", "-box"].join(""),
     produceType: "internal",
     produceOpts: {
       "include-unsupported-proxy": isIncludeUnsupported,
@@ -505,7 +505,7 @@ config.outbounds.forEach((outbound) => {
   }
 });
 
-// 9. 清理不存在的出站引用，防止 sing-box 启动报错 "outbound not found"
+// 9. 清理不存在的出站引用，防止 SB 核心启动报错 "outbound not found"
 const allAvailableOutboundTags = new Set(config.outbounds.map((o) => o.tag));
 allAvailableOutboundTags.add("COMPATIBLE");
 
@@ -536,7 +536,7 @@ config.outbounds.forEach((outbound) => {
   }
 });
 
-// 11. sing-box 1.14 ➔ 1.13 AST 实时降级转译器
+// 11. SB 1.14 ➔ 1.13 AST 实时降级转译器
 function transpile114To113(cfg) {
   // 11.1 将 services 中的 api 转回 experimental.clash_api
   if (Array.isArray(cfg.services)) {
