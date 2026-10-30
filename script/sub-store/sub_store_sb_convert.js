@@ -377,6 +377,75 @@ if (selfSubName) {
   }
 }
 
+// (1.1) 从 Sub-Store 本地文件读取 (例如: #localFile=anytls.json 或 #customFile=my_nodes.json)
+const rawLocalFiles =
+  args.localFile ||
+  args.localFiles ||
+  args.customFile ||
+  args.customFiles ||
+  customBundle.localFile ||
+  customBundle.localFiles;
+
+if (rawLocalFiles) {
+  const fileNames = (
+    Array.isArray(rawLocalFiles)
+      ? rawLocalFiles
+      : String(rawLocalFiles).split(/[,;\s]+/)
+  )
+    .map((f) => String(f).trim())
+    .filter(Boolean);
+
+  for (const fName of fileNames) {
+    let fileContent = null;
+    // 方式 A: 通过 $substore.read 直接读取本地存储
+    try {
+      if (typeof $substore !== "undefined") {
+        if (typeof $substore.read === "function") {
+          fileContent = $substore.read(fName) || $substore.read(`file/${fName}`);
+        } else if (typeof $substore.getFile === "function") {
+          fileContent = await $substore.getFile(fName);
+        }
+      }
+    } catch (_) {}
+
+    // 方式 B: 本地回路 API 请求 (Sub-Store 内置文件端点)
+    if (!fileContent) {
+      const endpoints = [
+        `http://127.0.0.1:3001/api/file/${encodeURIComponent(fName)}`,
+        `http://127.0.0.1:3000/api/file/${encodeURIComponent(fName)}`,
+        `http://localhost:3001/api/file/${encodeURIComponent(fName)}`,
+        `http://localhost:3000/api/file/${encodeURIComponent(fName)}`,
+      ];
+      for (const ep of endpoints) {
+        fileContent = await fetchRemoteText(ep, 1500);
+        if (fileContent) break;
+      }
+    }
+
+    if (fileContent) {
+      try {
+        const parsed = parser.parse(fileContent);
+        if (Array.isArray(parsed)) {
+          customNodeList.push(...parsed);
+        } else if (parsed && typeof parsed === "object") {
+          if (Array.isArray(parsed.outbounds)) {
+            customNodeList.push(...parsed.outbounds);
+          } else if (Array.isArray(parsed.nodes)) {
+            customNodeList.push(...parsed.nodes);
+          } else {
+            customNodeList.push(parsed);
+          }
+        }
+        console.log(`[Sub-Store] 成功加载本地文件 [${fName}] 节点`);
+      } catch (e) {
+        console.log(`[Sub-Store] 解析本地文件 [${fName}] 失败: ${e.message}`);
+      }
+    } else {
+      console.log(`[Sub-Store] 未能读取到本地文件 [${fName}]`);
+    }
+  }
+}
+
 // (2) 从 customBundle 中读取
 if (Array.isArray(customBundle.nodes)) {
   customNodeList.push(...customBundle.nodes);
