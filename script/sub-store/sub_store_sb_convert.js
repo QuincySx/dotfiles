@@ -82,17 +82,155 @@ async function fetchRemoteText(requestUrl, timeoutMs = 3000) {
 }
 
 const parser = ProxyUtils.JSON5 || JSON;
-let config;
-try {
-  const rawContent = $content || $files?.[0];
-  if (!rawContent) {
-    throw new Error("未获取到配置文件内容");
-  }
-  config = parser.parse(rawContent);
-} catch (e) {
-  throw new Error(
-    `配置文件不是合法的 ${ProxyUtils.JSON5 ? "JSON5" : "JSON"} 格式: ${e.message}`,
+
+// 智能配置切片归类与深度合并引擎 (Smart Config Slices & Deep Merge Engine)
+// 彻底解除文件顺序限制：自动识别主骨架模板与局部能力切片（节点、DNS、入站、路由）
+function isMainTemplate(obj) {
+  return (
+    obj &&
+    typeof obj === "object" &&
+    !Array.isArray(obj) &&
+    Array.isArray(obj.inbounds) &&
+    (Array.isArray(obj.route?.rules) ||
+      Array.isArray(obj.dns?.rules) ||
+      Array.isArray(obj.outbounds))
   );
+}
+
+const inputSources = [];
+if (typeof $content === "string" && $content.trim()) {
+  inputSources.push($content);
+}
+if (Array.isArray($files)) {
+  for (const f of $files) {
+    if (typeof f === "string" && f.trim() && !inputSources.includes(f)) {
+      inputSources.push(f);
+    }
+  }
+}
+
+if (inputSources.length === 0) {
+  throw new Error("未获取到任何配置文件内容，请检查 $content 或 $files 输入");
+}
+
+let config = null;
+const overlaySlices = [];
+
+for (const rawText of inputSources) {
+  try {
+    const parsed = parser.parse(rawText);
+    if (!config && isMainTemplate(parsed)) {
+      config = parsed;
+    } else {
+      overlaySlices.push(parsed);
+    }
+  } catch (e) {
+    console.log(`[Sub-Store] 解析输入片段跳过 (非标准 JSON): ${e.message}`);
+  }
+}
+
+// 容灾保底：若没有明确识别到主骨架，则取第一个对象作为 config
+if (!config) {
+  const firstObj = overlaySlices.find((s) => s && typeof s === "object" && !Array.isArray(s));
+  if (firstObj) {
+    config = firstObj;
+    const idx = overlaySlices.indexOf(firstObj);
+    overlaySlices.splice(idx, 1);
+  } else {
+    throw new Error("未能识别到有效的配置主骨架或模板");
+  }
+}
+
+// 提取所有切片中的节点与模块化配置
+let customNodeList = [];
+
+function mergeOverlaySlice(base, slice) {
+  if (!slice || typeof slice !== "object") return;
+
+  // 1. 纯节点数组
+  if (Array.isArray(slice)) {
+    customNodeList.push(...slice);
+    return;
+  }
+
+  // 2. 节点切片 (outbounds)
+  if (Array.isArray(slice.outbounds)) {
+    customNodeList.push(...slice.outbounds);
+  }
+
+  // 3. DNS 切片 (servers 唯一合并，rules 置顶优先匹配)
+  if (slice.dns && typeof slice.dns === "object") {
+    base.dns = base.dns || {};
+    if (Array.isArray(slice.dns.servers)) {
+      base.dns.servers = base.dns.servers || [];
+      const existingTags = new Set(base.dns.servers.map((s) => s.tag).filter(Boolean));
+      for (const s of slice.dns.servers) {
+        if (!s.tag || !existingTags.has(s.tag)) {
+          base.dns.servers.push(s);
+          if (s.tag) existingTags.add(s.tag);
+        }
+      }
+    }
+    if (Array.isArray(slice.dns.rules)) {
+      base.dns.rules = base.dns.rules || [];
+      base.dns.rules.unshift(...slice.dns.rules);
+    }
+    for (const k of ["strategy", "final", "reverse_mapping", "client_subnet"]) {
+      if (slice.dns[k] !== undefined) base.dns[k] = slice.dns[k];
+    }
+  }
+
+  // 4. 入站端口切片 (inbounds 追加)
+  if (Array.isArray(slice.inbounds)) {
+    base.inbounds = base.inbounds || [];
+    const existingTags = new Set(base.inbounds.map((i) => i.tag).filter(Boolean));
+    for (const inb of slice.inbounds) {
+      if (!inb.tag || !existingTags.has(inb.tag)) {
+        base.inbounds.push(inb);
+        if (inb.tag) existingTags.add(inb.tag);
+      }
+    }
+  }
+
+  // 5. 路由切片 (route.rules 置顶优先匹配，route.rule_set 追加)
+  if (slice.route && typeof slice.route === "object") {
+    base.route = base.route || {};
+    if (Array.isArray(slice.route.rules)) {
+      base.route.rules = base.route.rules || [];
+      const insertIdx = base.route.rules.findIndex(
+        (r) => r.action !== "sniff" && r.action !== "hijack-dns",
+      );
+      if (insertIdx !== -1) {
+        base.route.rules.splice(insertIdx, 0, ...slice.route.rules);
+      } else {
+        base.route.rules.unshift(...slice.route.rules);
+      }
+    }
+    if (Array.isArray(slice.route.rule_set)) {
+      base.route.rule_set = base.route.rule_set || [];
+      const existingTags = new Set(base.route.rule_set.map((rs) => rs.tag).filter(Boolean));
+      for (const rs of slice.route.rule_set) {
+        if (!rs.tag || !existingTags.has(rs.tag)) {
+          base.route.rule_set.push(rs);
+          if (rs.tag) existingTags.add(rs.tag);
+        }
+      }
+    }
+  }
+
+  // 6. 服务与实验性配置合并
+  if (Array.isArray(slice.services)) {
+    base.services = base.services || [];
+    base.services.push(...slice.services);
+  }
+  if (slice.experimental && typeof slice.experimental === "object") {
+    base.experimental = Object.assign({}, base.experimental, slice.experimental);
+  }
+}
+
+// 应用所有附加切片
+for (const slice of overlaySlices) {
+  mergeOverlaySlice(config, slice);
 }
 
 // 1. 解析统一 Base64 个性化打包配置 (custom / customConfig / customSettings)
@@ -205,9 +343,7 @@ try {
   throw new Error(`产物生成失败: ${e.message}`);
 }
 
-// 4. 加载自建节点池 (支持 Sub-Store 内部节点池/订阅、多文件、Base64、外部私有源)
-let customNodeList = [];
-
+// 4. 加载自建节点池 (支持 Sub-Store 内部节点池/订阅、配置切片、Base64、外部私有源)
 // (1) 优先从 Sub-Store 本地订阅/节点池读取 (例如: #selfSub=自建节点 或 #selfNode=自建)
 const selfSubName =
   args.selfSub ||
@@ -236,28 +372,7 @@ if (selfSubName) {
   }
 }
 
-// (2) 从 Sub-Store 多文件输入 ($files[1...]) 读取本地 JSON
-if (Array.isArray($files) && $files.length > 1) {
-  for (let fi = 1; fi < $files.length; fi++) {
-    const extraContent = $files[fi];
-    if (typeof extraContent === "string" && extraContent.trim()) {
-      try {
-        const parsedFiles = parser.parse(extraContent);
-        if (Array.isArray(parsedFiles)) {
-          customNodeList.push(...parsedFiles);
-        } else if (parsedFiles && typeof parsedFiles === "object") {
-          if (Array.isArray(parsedFiles.outbounds)) {
-            customNodeList.push(...parsedFiles.outbounds);
-          } else {
-            customNodeList.push(parsedFiles);
-          }
-        }
-      } catch (_) {}
-    }
-  }
-}
-
-// (3) 从 customBundle 中读取
+// (2) 从 customBundle 中读取
 if (Array.isArray(customBundle.nodes)) {
   customNodeList.push(...customBundle.nodes);
 } else if (customBundle.node && typeof customBundle.node === "object") {

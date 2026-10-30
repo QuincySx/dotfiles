@@ -1,6 +1,26 @@
-// https://raw.githubusercontent.com/QuincySx/dotfiles/refs/heads/metadata/script/sub-store/sub_store_sb_convert_1.14.js#name=机场&device=mac
+// https://raw.githubusercontent.com/QuincySx/dotfiles/refs/heads/metadata/script/sub-store/sub_store_sb_convert.js#name=机场&device=mac
 //
-// SB 1.14 订阅编译脚本 (兼容新版统一转换逻辑)
+// 现代 SB 订阅编译脚本 (支持 1.14 现代语法 & 1.13 自动降级转译)
+//
+// 参数说明:
+// - name: 机场名称（必填）
+// - type: 组合订阅 (collection) 或 subscription（默认 subscription）
+// - url: 订阅链接（可选，有则远程获取，无则从本地 Sub-Store 节点池读取）
+// - device / profile: 设备预设（如 mac, router, router_pbr, mobile）
+// - autoRoute / auto_route: 强制指定 TUN auto_route (true / false)
+// - autoRedirect / auto_redirect: 强制指定 TUN auto_redirect (true / false)
+// - strictRoute / strict_route: 强制指定 TUN strict_route (true / false)
+// - interfaceName: TUN 网卡名称（如 "momo", "tun0", 设为 "none" 或 "null" 则清除）
+// - excludeUid: 排除的用户 UID（如 "1000"，多个逗号分隔）
+// - routeExcludeAddress / excludeAddress: 排除直连 CIDR（覆盖模式）
+// - appendRouteExcludeAddress / appendExcludeAddress: 追加排除直连 CIDR
+// - bypassDomains / directDomains: 自定义直连域名（如 "xethub.hf.co,in.appcenter.ms"）
+// - clientSubnet: DNS ECS 客户端子网 IP/网段（如 "221.130.33.60/24"）
+// - nodes / customNodes: 自建节点控制（"none" 或 "false" 则不加载外部自建节点）
+// - customNodesUrl / customNodeUrl: 外部自建节点 JSON 的 URL（支持异步拉取）
+// - custom: 统一打包配置的 Base64 字符串（旧版兼容支持）
+// - v / version: 目标内核版本，默认 1.14。传 "1.13" 时自动执行 AST 语法降级转译
+// - includeUnsupportedProxy: 是否包含 SSR 等非官方协议 (true / false)
 
 const args = $arguments ?? {};
 const { name, url, includeUnsupportedProxy } = args;
@@ -62,17 +82,155 @@ async function fetchRemoteText(requestUrl, timeoutMs = 3000) {
 }
 
 const parser = ProxyUtils.JSON5 || JSON;
-let config;
-try {
-  const rawContent = $content || $files?.[0];
-  if (!rawContent) {
-    throw new Error("未获取到配置文件内容");
-  }
-  config = parser.parse(rawContent);
-} catch (e) {
-  throw new Error(
-    `配置文件不是合法的 ${ProxyUtils.JSON5 ? "JSON5" : "JSON"} 格式: ${e.message}`,
+
+// 智能配置切片归类与深度合并引擎 (Smart Config Slices & Deep Merge Engine)
+// 彻底解除文件顺序限制：自动识别主骨架模板与局部能力切片（节点、DNS、入站、路由）
+function isMainTemplate(obj) {
+  return (
+    obj &&
+    typeof obj === "object" &&
+    !Array.isArray(obj) &&
+    Array.isArray(obj.inbounds) &&
+    (Array.isArray(obj.route?.rules) ||
+      Array.isArray(obj.dns?.rules) ||
+      Array.isArray(obj.outbounds))
   );
+}
+
+const inputSources = [];
+if (typeof $content === "string" && $content.trim()) {
+  inputSources.push($content);
+}
+if (Array.isArray($files)) {
+  for (const f of $files) {
+    if (typeof f === "string" && f.trim() && !inputSources.includes(f)) {
+      inputSources.push(f);
+    }
+  }
+}
+
+if (inputSources.length === 0) {
+  throw new Error("未获取到任何配置文件内容，请检查 $content 或 $files 输入");
+}
+
+let config = null;
+const overlaySlices = [];
+
+for (const rawText of inputSources) {
+  try {
+    const parsed = parser.parse(rawText);
+    if (!config && isMainTemplate(parsed)) {
+      config = parsed;
+    } else {
+      overlaySlices.push(parsed);
+    }
+  } catch (e) {
+    console.log(`[Sub-Store] 解析输入片段跳过 (非标准 JSON): ${e.message}`);
+  }
+}
+
+// 容灾保底：若没有明确识别到主骨架，则取第一个对象作为 config
+if (!config) {
+  const firstObj = overlaySlices.find((s) => s && typeof s === "object" && !Array.isArray(s));
+  if (firstObj) {
+    config = firstObj;
+    const idx = overlaySlices.indexOf(firstObj);
+    overlaySlices.splice(idx, 1);
+  } else {
+    throw new Error("未能识别到有效的配置主骨架或模板");
+  }
+}
+
+// 提取所有切片中的节点与模块化配置
+let customNodeList = [];
+
+function mergeOverlaySlice(base, slice) {
+  if (!slice || typeof slice !== "object") return;
+
+  // 1. 纯节点数组
+  if (Array.isArray(slice)) {
+    customNodeList.push(...slice);
+    return;
+  }
+
+  // 2. 节点切片 (outbounds)
+  if (Array.isArray(slice.outbounds)) {
+    customNodeList.push(...slice.outbounds);
+  }
+
+  // 3. DNS 切片 (servers 唯一合并，rules 置顶优先匹配)
+  if (slice.dns && typeof slice.dns === "object") {
+    base.dns = base.dns || {};
+    if (Array.isArray(slice.dns.servers)) {
+      base.dns.servers = base.dns.servers || [];
+      const existingTags = new Set(base.dns.servers.map((s) => s.tag).filter(Boolean));
+      for (const s of slice.dns.servers) {
+        if (!s.tag || !existingTags.has(s.tag)) {
+          base.dns.servers.push(s);
+          if (s.tag) existingTags.add(s.tag);
+        }
+      }
+    }
+    if (Array.isArray(slice.dns.rules)) {
+      base.dns.rules = base.dns.rules || [];
+      base.dns.rules.unshift(...slice.dns.rules);
+    }
+    for (const k of ["strategy", "final", "reverse_mapping", "client_subnet"]) {
+      if (slice.dns[k] !== undefined) base.dns[k] = slice.dns[k];
+    }
+  }
+
+  // 4. 入站端口切片 (inbounds 追加)
+  if (Array.isArray(slice.inbounds)) {
+    base.inbounds = base.inbounds || [];
+    const existingTags = new Set(base.inbounds.map((i) => i.tag).filter(Boolean));
+    for (const inb of slice.inbounds) {
+      if (!inb.tag || !existingTags.has(inb.tag)) {
+        base.inbounds.push(inb);
+        if (inb.tag) existingTags.add(inb.tag);
+      }
+    }
+  }
+
+  // 5. 路由切片 (route.rules 置顶优先匹配，route.rule_set 追加)
+  if (slice.route && typeof slice.route === "object") {
+    base.route = base.route || {};
+    if (Array.isArray(slice.route.rules)) {
+      base.route.rules = base.route.rules || [];
+      const insertIdx = base.route.rules.findIndex(
+        (r) => r.action !== "sniff" && r.action !== "hijack-dns",
+      );
+      if (insertIdx !== -1) {
+        base.route.rules.splice(insertIdx, 0, ...slice.route.rules);
+      } else {
+        base.route.rules.unshift(...slice.route.rules);
+      }
+    }
+    if (Array.isArray(slice.route.rule_set)) {
+      base.route.rule_set = base.route.rule_set || [];
+      const existingTags = new Set(base.route.rule_set.map((rs) => rs.tag).filter(Boolean));
+      for (const rs of slice.route.rule_set) {
+        if (!rs.tag || !existingTags.has(rs.tag)) {
+          base.route.rule_set.push(rs);
+          if (rs.tag) existingTags.add(rs.tag);
+        }
+      }
+    }
+  }
+
+  // 6. 服务与实验性配置合并
+  if (Array.isArray(slice.services)) {
+    base.services = base.services || [];
+    base.services.push(...slice.services);
+  }
+  if (slice.experimental && typeof slice.experimental === "object") {
+    base.experimental = Object.assign({}, base.experimental, slice.experimental);
+  }
+}
+
+// 应用所有附加切片
+for (const slice of overlaySlices) {
+  mergeOverlaySlice(config, slice);
 }
 
 // 1. 解析统一 Base64 个性化打包配置 (custom / customConfig / customSettings)
@@ -185,9 +343,7 @@ try {
   throw new Error(`产物生成失败: ${e.message}`);
 }
 
-// 4. 加载自建节点池 (支持 Sub-Store 内部节点池/订阅、多文件、Base64、外部私有源)
-let customNodeList = [];
-
+// 4. 加载自建节点池 (支持 Sub-Store 内部节点池/订阅、配置切片、Base64、外部私有源)
 // (1) 优先从 Sub-Store 本地订阅/节点池读取 (例如: #selfSub=自建节点 或 #selfNode=自建)
 const selfSubName =
   args.selfSub ||
@@ -216,28 +372,7 @@ if (selfSubName) {
   }
 }
 
-// (2) 从 Sub-Store 多文件输入 ($files[1...]) 读取本地 JSON
-if (Array.isArray($files) && $files.length > 1) {
-  for (let fi = 1; fi < $files.length; fi++) {
-    const extraContent = $files[fi];
-    if (typeof extraContent === "string" && extraContent.trim()) {
-      try {
-        const parsedFiles = parser.parse(extraContent);
-        if (Array.isArray(parsedFiles)) {
-          customNodeList.push(...parsedFiles);
-        } else if (parsedFiles && typeof parsedFiles === "object") {
-          if (Array.isArray(parsedFiles.outbounds)) {
-            customNodeList.push(...parsedFiles.outbounds);
-          } else {
-            customNodeList.push(parsedFiles);
-          }
-        }
-      } catch (_) {}
-    }
-  }
-}
-
-// (3) 从 customBundle 中读取
+// (2) 从 customBundle 中读取
 if (Array.isArray(customBundle.nodes)) {
   customNodeList.push(...customBundle.nodes);
 } else if (customBundle.node && typeof customBundle.node === "object") {
@@ -285,6 +420,7 @@ if (remoteNodeUrl && typeof remoteNodeUrl === "string") {
   }
 }
 
+// 去重自建节点（按 tag 唯一化）
 const existingProxyTags = new Set(proxies.map((p) => p.tag));
 const validCustomNodes = [];
 for (const node of customNodeList) {
@@ -309,7 +445,8 @@ let compatible = false;
 config.outbounds = config.outbounds || [];
 config.outbounds.push(...proxies);
 
-// 5. 处理 TUN 入站配置
+// 5. 处理 TUN 入站配置 (网卡名称、auto_route、auto_redirect、strict_route、exclude_uid、CIDR 排除)
+// 路由排除地址解析
 const rawExcludeAddresses =
   customBundle.routeExcludeAddress ||
   customBundle.excludeAddress ||
@@ -352,6 +489,7 @@ if (rawExcludeAddresses) {
     .map((ip) => (ip.includes("/") ? ip : `${ip}/32`));
 }
 
+// 排除 UID
 const rawUids =
   customBundle.excludeUid !== undefined
     ? customBundle.excludeUid
@@ -366,6 +504,7 @@ const extraExcludeUids =
         .filter((n) => !isNaN(n))
     : [];
 
+// 网卡名称
 const activeInterfaceName =
   customBundle.interfaceName !== undefined
     ? customBundle.interfaceName
@@ -373,6 +512,7 @@ const activeInterfaceName =
       ? args.interfaceName
       : activeProfile.interface_name;
 
+// auto_route / auto_redirect / strict_route
 function parseBooleanOpt(val, fallback) {
   if (val === undefined || val === null) return fallback;
   if (val === true || val === "true" || val === 1 || val === "1") return true;
@@ -398,6 +538,7 @@ const activeStrictRoute = parseBooleanOpt(
 if (Array.isArray(config.inbounds)) {
   config.inbounds.forEach((inbound) => {
     if (inbound.type === "tun") {
+      // 网卡名设置
       if (
         activeInterfaceName === null ||
         activeInterfaceName === "" ||
@@ -409,6 +550,7 @@ if (Array.isArray(config.inbounds)) {
         inbound.interface_name = activeInterfaceName;
       }
 
+      // 路由行为控制
       if (activeAutoRoute !== undefined) {
         inbound.auto_route = activeAutoRoute;
       }
@@ -419,6 +561,7 @@ if (Array.isArray(config.inbounds)) {
         inbound.strict_route = activeStrictRoute;
       }
 
+      // 路由地址排除
       if (extraExcludeAddresses.length > 0) {
         if (appendOnly) {
           inbound.route_exclude_address = Array.isArray(
@@ -438,6 +581,7 @@ if (Array.isArray(config.inbounds)) {
         }
       }
 
+      // UID 排除
       if (extraExcludeUids.length > 0) {
         inbound.exclude_uid = Array.isArray(inbound.exclude_uid)
           ? [...new Set([...inbound.exclude_uid, ...extraExcludeUids])]
@@ -447,7 +591,7 @@ if (Array.isArray(config.inbounds)) {
   });
 }
 
-// 6. 处理直连域名
+// 6. 处理自定义直连域名 (bypassDomains / directDomains)
 const rawBypassDomains =
   customBundle.bypassDomains ||
   customBundle.directDomains ||
@@ -480,7 +624,7 @@ if (rawBypassDomains && config.route && Array.isArray(config.route.rules)) {
   }
 }
 
-// 7. 处理 clientSubnet
+// 7. 处理 DNS 客户端子网 ECS (clientSubnet)
 const activeClientSubnet = customBundle.clientSubnet || args.clientSubnet;
 if (activeClientSubnet && config.dns && Array.isArray(config.dns.rules)) {
   config.dns.rules.forEach((rule) => {
@@ -495,6 +639,7 @@ config.outbounds.forEach((outbound) => {
   if (outbound.outbounds && outbound.outbounds.includes("{all}")) {
     let filteredProxies = [...proxies];
 
+    // 应用过滤器
     if (Array.isArray(outbound.filter)) {
       outbound.filter.forEach((filter) => {
         if (!filter.keywords || !filter.keywords.length) return;
@@ -511,8 +656,11 @@ config.outbounds.forEach((outbound) => {
       });
     }
 
+    // 展开 {all}
     const index = outbound.outbounds.indexOf("{all}");
     outbound.outbounds.splice(index, 1, ...filteredProxies.map((p) => p.tag));
+
+    // 去重
     outbound.outbounds = [...new Set(outbound.outbounds)];
   }
 
@@ -521,7 +669,7 @@ config.outbounds.forEach((outbound) => {
   }
 });
 
-// 9. 清理不存在的出站引用
+// 9. 清理不存在的出站引用，防止 SB 核心启动报错 "outbound not found"
 const allAvailableOutboundTags = new Set(config.outbounds.map((o) => o.tag));
 allAvailableOutboundTags.add("COMPATIBLE");
 
@@ -541,7 +689,7 @@ config.outbounds.forEach((outbound) => {
   }
 });
 
-// 10. 处理空分组
+// 10. 处理空分组，保底注入 COMPATIBLE
 config.outbounds.forEach((outbound) => {
   if (Array.isArray(outbound.outbounds) && outbound.outbounds.length === 0) {
     if (!compatible) {
@@ -554,6 +702,7 @@ config.outbounds.forEach((outbound) => {
 
 // 11. SB 1.14 ➔ 1.13 AST 实时降级转译器
 function transpile114To113(cfg) {
+  // 11.1 将 services 中的 api 转回 experimental.clash_api
   if (Array.isArray(cfg.services)) {
     const apiService = cfg.services.find((s) => s.type === "api");
     if (apiService) {
@@ -572,16 +721,19 @@ function transpile114To113(cfg) {
     delete cfg.services;
   }
 
+  // 11.2 缓存配置兼容: store_dns 降级为 store_rdrc
   if (cfg.experimental?.cache_file?.store_dns !== undefined) {
     cfg.experimental.cache_file.store_rdrc = cfg.experimental.cache_file.store_dns;
     delete cfg.experimental.cache_file.store_dns;
   }
 
+  // 11.3 DNS 规则降级: 1.14 preferred_by 与 evaluate 语法转为 1.13 语法
   if (cfg.dns && Array.isArray(cfg.dns.rules)) {
     const newDnsRules = [];
     for (let i = 0; i < cfg.dns.rules.length; i++) {
       const rule = cfg.dns.rules[i];
 
+      // preferred_by: hosts -> ip_accept_any
       if (rule.preferred_by === "hosts") {
         newDnsRules.push({
           ip_accept_any: true,
@@ -590,6 +742,7 @@ function transpile114To113(cfg) {
         continue;
       }
 
+      // evaluate + match_response 组合降级为 1.13 logical "and" 规则
       if (
         rule.action === "evaluate" &&
         rule.rule_set === "geosite-geolocation-!cn" &&
@@ -612,7 +765,7 @@ function transpile114To113(cfg) {
             server: nextRule.server || "localDns",
             strategy: nextRule.strategy || "ipv4_only",
           });
-          i++;
+          i++; // 跳过匹配的下一条
           continue;
         }
       }
@@ -622,6 +775,7 @@ function transpile114To113(cfg) {
     cfg.dns.rules = newDnsRules;
   }
 
+  // 11.4 路由与 http_clients 降级: 移除 http_clients 与 default_http_client，确保各规则集携带 download_detour
   if (cfg.http_clients) {
     delete cfg.http_clients;
   }
