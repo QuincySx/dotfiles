@@ -301,22 +301,10 @@ const BUILTIN_PROFILES = {
 
 const profileAliasMap = {
   mac: "mac",
-  darwin: "mac",
-  osx: "mac",
   router: "router",
-  openwrt: "router",
   "router-momo": "router-momo",
-  "momo-router": "router-momo",
-  momo: "router-momo",
-  router_tun: "router",
   router_pbr: "router_pbr",
-  pbr: "router_pbr",
-  tproxy: "router_pbr",
-  router_no_autoroute: "router_pbr",
   mobile: "mobile",
-  ios: "mobile",
-  android: "mobile",
-  phone: "mobile",
 };
 
 const requestedProfileKey = (
