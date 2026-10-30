@@ -5,9 +5,4 @@ DOMAIN-SUFFIX,claude.ai
 DOMAIN-SUFFIX,claudeusercontent.com
 DOMAIN-SUFFIX,stripe.com
 DOMAIN-SUFFIX,claude.com
-# Claude 语音/WebRTC 的 STUN 探测（默认会去连 Google 的 STUN 服务器）
-DOMAIN,stun.l.google.com
-DOMAIN,stun1.l.google.com
-DOMAIN,stun2.l.google.com
-DOMAIN,stun3.l.google.com
-DOMAIN,stun4.l.google.com
+
