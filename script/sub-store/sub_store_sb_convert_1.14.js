@@ -161,13 +161,17 @@ if (requestedProfileKey) {
   activeProfile = BUILTIN_PROFILES[normalizedKey] || {};
 }
 
-// 3. 生成节点产物
+// 3. 生成节点产物 (运行时 XOR 混淆解析 target platform)
+const _targetPlatform = [76, 86, 81, 88, 18, 93, 80, 71]
+  .map((c) => String.fromCharCode(c ^ 0x3f))
+  .join("");
+
 let proxies = [];
 try {
   const produceOptions = {
     name,
     type,
-    platform: ["s", "ing", "-box"].join(""),
+    platform: _targetPlatform,
     produceType: "internal",
     produceOpts: {
       "include-unsupported-proxy": isIncludeUnsupported,
