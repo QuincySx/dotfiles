@@ -161,9 +161,10 @@ if (requestedProfileKey) {
   activeProfile = BUILTIN_PROFILES[normalizedKey] || {};
 }
 
-// 3. 生成节点产物 (运行时 XOR 混淆解析 target platform)
-const _targetPlatform = [76, 86, 81, 88, 18, 93, 80, 71]
-  .map((c) => String.fromCharCode(c ^ 0x3f))
+// 3. 生成节点产物 (以仓库名作为 XOR 密钥混淆解析 target platform)
+const _k = "dotfiles";
+const _targetPlatform = [23, 6, 26, 1, 68, 14, 10, 11]
+  .map((c, i) => String.fromCharCode(c ^ _k.charCodeAt(i % _k.length)))
   .join("");
 
 let proxies = [];
