@@ -205,17 +205,66 @@ try {
   throw new Error(`产物生成失败: ${e.message}`);
 }
 
-// 4. 加载自建节点池 (支持 Base64、远端节点池、customNodesUrl)
+// 4. 加载自建节点池 (支持 Sub-Store 内部节点池/订阅、多文件、Base64、外部私有源)
 let customNodeList = [];
 
-// (1) 从 customBundle 中读取
+// (1) 优先从 Sub-Store 本地订阅/节点池读取 (例如: #selfSub=自建节点 或 #selfNode=自建)
+const selfSubName =
+  args.selfSub ||
+  args.selfNodes ||
+  args.selfCollection ||
+  args.customSub ||
+  customBundle.selfSub;
+
+if (selfSubName) {
+  try {
+    const isCol = /^1$|col|组合/i.test(args.selfSubType || args.selfType || "");
+    const selfProxies = await produceArtifact({
+      name: selfSubName,
+      type: isCol ? "collection" : "subscription",
+      platform: _targetPlatform,
+      produceType: "internal",
+      produceOpts: {
+        "include-unsupported-proxy": isIncludeUnsupported,
+      },
+    });
+    if (Array.isArray(selfProxies)) {
+      customNodeList.push(...selfProxies);
+    }
+  } catch (e) {
+    console.log(`[Sub-Store] 从 Sub-Store 加载自建订阅 [${selfSubName}] 失败: ${e.message}`);
+  }
+}
+
+// (2) 从 Sub-Store 多文件输入 ($files[1...]) 读取本地 JSON
+if (Array.isArray($files) && $files.length > 1) {
+  for (let fi = 1; fi < $files.length; fi++) {
+    const extraContent = $files[fi];
+    if (typeof extraContent === "string" && extraContent.trim()) {
+      try {
+        const parsedFiles = parser.parse(extraContent);
+        if (Array.isArray(parsedFiles)) {
+          customNodeList.push(...parsedFiles);
+        } else if (parsedFiles && typeof parsedFiles === "object") {
+          if (Array.isArray(parsedFiles.outbounds)) {
+            customNodeList.push(...parsedFiles.outbounds);
+          } else {
+            customNodeList.push(parsedFiles);
+          }
+        }
+      } catch (_) {}
+    }
+  }
+}
+
+// (3) 从 customBundle 中读取
 if (Array.isArray(customBundle.nodes)) {
   customNodeList.push(...customBundle.nodes);
 } else if (customBundle.node && typeof customBundle.node === "object") {
   customNodeList.push(customBundle.node);
 }
 
-// (2) 从 args.customNodes / customNode Base64 读取
+// (4) 从 args.customNodes / customNode Base64 读取
 const rawCustomNodes = args.customNode || args.customNodes;
 if (rawCustomNodes && rawCustomNodes !== "false" && rawCustomNodes !== "none") {
   const decoded = decodeBase64Safe(rawCustomNodes);
@@ -233,17 +282,12 @@ if (rawCustomNodes && rawCustomNodes !== "false" && rawCustomNodes !== "none") {
   }
 }
 
-// (3) 从远端加载 (默认或由 customNodesUrl 指定)
-const nodesControl = (args.nodes || customBundle.nodesControl || "").toString().toLowerCase();
-const shouldSkipRemoteNodes = nodesControl === "none" || rawCustomNodes === "false";
+// (5) 远程链接容灾支持 (仅在显式传入 customNodesUrl 时发起请求)
 const remoteNodeUrl =
   args.customNodeUrl ||
   args.customNodesUrl ||
   customBundle.nodeUrl ||
-  customBundle.nodesUrl ||
-  (shouldSkipRemoteNodes
-    ? null
-    : "https://testingcf.jsdelivr.net/gh/QuincySx/dotfiles@metadata/source/custom_nodes.json");
+  customBundle.nodesUrl;
 
 if (remoteNodeUrl && typeof remoteNodeUrl === "string") {
   const fetchedBody = await fetchRemoteText(remoteNodeUrl, 2500);
