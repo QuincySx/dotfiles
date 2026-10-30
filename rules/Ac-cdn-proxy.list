@@ -27,3 +27,11 @@ DOMAIN-SUFFIX,gvt1.com
 DOMAIN-SUFFIX,googlezip.net
 DOMAIN-SUFFIX,blackmagicdesign.com
 DOMAIN,download.live.ledger.com
+
+# OBS Studio CDN
+DOMAIN,cdn-fastly.obsproject.com
+
+# Crypto RPC & Blockchain Sync (Heavy Traffic -> Low Multiplier CDN)
+DOMAIN,xmr-node.cakewallet.com
+DOMAIN,zcash-mainnet.chainsafe.dev
+
