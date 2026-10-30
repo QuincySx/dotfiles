@@ -1,0 +1,24 @@
+[
+  {
+    "tag": "self-hk-reality-01",
+    "type": "vless",
+    "server": "1.1.1.1",
+    "server_port": 443,
+    "uuid": "00000000-0000-0000-0000-000000000000",
+    "flow": "xtls-rprx-vision",
+    "network": "tcp",
+    "tls": {
+      "enabled": true,
+      "server_name": "gateway.icloud.com",
+      "utls": {
+        "enabled": true,
+        "fingerprint": "chrome"
+      },
+      "reality": {
+        "enabled": true,
+        "public_key": "YOUR_REALITY_PUBLIC_KEY",
+        "short_id": "0123456789abcdef"
+      }
+    }
+  }
+]

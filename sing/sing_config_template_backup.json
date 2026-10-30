@@ -4,18 +4,10 @@
     "timestamp": true
   },
   "experimental": {
-    "clash_api": {
-      "external_controller": "0.0.0.0:9090",
-      "external_ui": "ui",
-      "secret": "123456",
-      "external_ui_download_url": "https://edgeone.gh-proxy.com/github.com/MetaCubeX/metacubexd/archive/gh-pages.zip",
-      "external_ui_download_detour": "direct-out",
-      "default_mode": "rule"
-    },
     "cache_file": {
       "enabled": true,
       "store_fakeip": false,
-      "store_rdrc": true
+      "store_dns": true
     }
   },
   "dns": {
@@ -66,7 +58,8 @@
     ],
     "rules": [
       {
-        "ip_accept_any": true,
+        "preferred_by": "hosts",
+        "action": "route",
         "server": "hosts"
       },
       {
@@ -120,17 +113,15 @@
         "strategy": "prefer_ipv6"
       },
       {
-        "type": "logical",
-        "mode": "and",
-        "rules": [
-          {
-            "rule_set": "geosite-geolocation-!cn",
-            "invert": true
-          },
-          {
-            "rule_set": "geoip-cn"
-          }
-        ],
+        "rule_set": "geosite-geolocation-!cn",
+        "invert": true,
+        "action": "evaluate",
+        "server": "localDns"
+      },
+      {
+        "rule_set": "geoip-cn",
+        "match_response": true,
+        "action": "route",
         "server": "localDns",
         "strategy": "ipv4_only"
       }
@@ -732,8 +723,7 @@
       },
       {
         "protocol": [
-          "bittorrent",
-          "stun"
+          "bittorrent"
         ],
         "action": "route",
         "outbound": "direct-out"
@@ -776,6 +766,12 @@
           "ac-claude"
         ],
         "outbound": "🤖 Claude分流"
+      },
+      {
+        "protocol": [
+          "stun"
+        ],
+        "outbound": "direct-out"
       },
       {
         "rule_set": [
@@ -1222,6 +1218,28 @@
         "url": "https://testingcf.jsdelivr.net/gh/QuincySx/dotfiles@metadata/sing/rules/download.srs",
         "download_detour": "direct-out"
       }
-    ]
-  }
+    ],
+    "default_http_client": "direct-client"
+  },
+  "http_clients": [
+    {
+      "tag": "direct-client",
+      "detour": "direct-out"
+    }
+  ],
+  "services": [
+    {
+      "type": "api",
+      "listen": "0.0.0.0:9090",
+      "secret": "123456",
+      "access_control_allow_origin": [
+        "*"
+      ],
+      "dashboard": {
+        "enabled": true,
+        "download_url": "https://edgeone.gh-proxy.com/github.com/SagerNet/sing-box-dashboard/archive/refs/heads/gh-pages.zip",
+        "update_interval": "1d"
+      }
+    }
+  ]
 }
