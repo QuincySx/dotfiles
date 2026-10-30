@@ -266,6 +266,20 @@ const BUILTIN_PROFILES = {
       "192.168.0.0/16",
     ],
   },
+  "router-momo": {
+    interface_name: "tun0",
+    auto_route: true,
+    auto_redirect: true,
+    strict_route: false,
+    exclude_uid: [1000],
+    route_exclude_address: [
+      "10.0.0.0/8",
+      "172.16.0.0/12",
+      "192.168.0.0/16",
+    ],
+    cache_path: "/etc/momo/run/cache.db",
+    external_ui: "/etc/momo/run/ui",
+  },
   router_pbr: {
     interface_name: "tun0",
     auto_route: false,
@@ -291,6 +305,9 @@ const profileAliasMap = {
   osx: "mac",
   router: "router",
   openwrt: "router",
+  "router-momo": "router-momo",
+  "momo-router": "router-momo",
+  momo: "router-momo",
   router_tun: "router",
   router_pbr: "router_pbr",
   pbr: "router_pbr",
@@ -591,6 +608,25 @@ if (Array.isArray(config.inbounds)) {
   });
 }
 
+// 5.1 针对 momo 等特殊设备预设覆盖 cache.db 与 WebUI 路径
+if (activeProfile.cache_path) {
+  config.experimental = config.experimental || {};
+  config.experimental.cache_file = config.experimental.cache_file || {};
+  config.experimental.cache_file.path = activeProfile.cache_path;
+}
+if (activeProfile.external_ui) {
+  if (config.experimental?.clash_api) {
+    config.experimental.clash_api.external_ui = activeProfile.external_ui;
+  }
+  if (Array.isArray(config.services)) {
+    const apiSvc = config.services.find((s) => s.type === "api");
+    if (apiSvc) {
+      apiSvc.dashboard = apiSvc.dashboard || {};
+      apiSvc.dashboard.directory = activeProfile.external_ui;
+    }
+  }
+}
+
 // 6. 处理自定义直连域名 (bypassDomains / directDomains)
 const rawBypassDomains =
   customBundle.bypassDomains ||
@@ -709,7 +745,10 @@ function transpile114To113(cfg) {
       cfg.experimental = cfg.experimental || {};
       cfg.experimental.clash_api = {
         external_controller: apiService.listen || "0.0.0.0:9090",
-        external_ui: "ui",
+        external_ui:
+          activeProfile.external_ui ||
+          apiService.dashboard?.directory ||
+          "ui",
         secret: apiService.secret || "123456",
         external_ui_download_url:
           apiService.dashboard?.download_url ||
