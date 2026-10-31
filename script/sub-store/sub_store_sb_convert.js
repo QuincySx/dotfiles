@@ -3,10 +3,10 @@
 // 现代 SB 订阅编译脚本 (支持 1.14 现代语法 & 1.13 自动降级转译)
 //
 // 参数说明:
-// - name: 机场名称（必填）
+// - name: 机场名称（仅使用本地节点切片时可省略）
 // - type: 组合订阅 (collection) 或 subscription（默认 subscription）
 // - url: 订阅链接（可选，有则远程获取，无则从本地 Sub-Store 节点池读取）
-// - device / profile: 设备预设（如 mac, router, router_pbr, mobile）
+// - device / profile: 设备预设（如 mac, router-bypass, router, router_pbr, mobile）
 // - autoRoute / auto_route: 强制指定 TUN auto_route (true / false)
 // - autoRedirect / auto_redirect: 强制指定 TUN auto_redirect (true / false)
 // - strictRoute / strict_route: 强制指定 TUN strict_route (true / false)
@@ -29,6 +29,13 @@ let { type } = args;
 type = /^1$|col|组合/i.test(type) ? "collection" : "subscription";
 const isIncludeUnsupported =
   includeUnsupportedProxy === true || includeUnsupportedProxy === "true";
+const targetVersion = String(args.v || args.version || "1.14").trim();
+const versionMatch = /^v?1\.(13|14)(?:\.\d+)?(?:[-+][\w.-]+)?$/.exec(targetVersion);
+if (!versionMatch) {
+  throw new Error(`不支持的目标版本: ${targetVersion}，请指定 1.13 或 1.14（可带补丁版本）`);
+}
+const isVersion113 = versionMatch[1] === "13";
+const customNodesEnabled = ![false, "false", "none"].includes(args.nodes ?? args.customNodes);
 
 // 安全 Base64 解码函数（防 URL 传输过程中 + 变空格、漏补等号、URL-safe 符号转义）
 function decodeBase64Safe(str) {
@@ -149,12 +156,12 @@ function mergeOverlaySlice(base, slice) {
 
   // 1. 纯节点数组
   if (Array.isArray(slice)) {
-    customNodeList.push(...slice);
+    if (customNodesEnabled) customNodeList.push(...slice);
     return;
   }
 
   // 2. 节点切片 (outbounds)
-  if (Array.isArray(slice.outbounds)) {
+  if (customNodesEnabled && Array.isArray(slice.outbounds)) {
     customNodeList.push(...slice.outbounds);
   }
 
@@ -247,12 +254,16 @@ if (rawCustom) {
   }
 }
 
-// 2. 内置设备预设库 (具备本地保底与远程更新能力)
+// 2. 内置设备预设库（source/device_profiles.json 为对应的配置说明）
 const BUILTIN_PROFILES = {
   mac: {
     interface_name: "momo",
     auto_route: true,
+    auto_redirect: false,
     strict_route: true,
+    exclude_uid: [],
+    route_exclude_address: [],
+    route_exclude_address_set: [],
   },
   router: {
     interface_name: "tun0",
@@ -295,7 +306,11 @@ const BUILTIN_PROFILES = {
   mobile: {
     interface_name: null,
     auto_route: true,
+    auto_redirect: false,
     strict_route: true,
+    exclude_uid: [],
+    route_exclude_address: [],
+    route_exclude_address_set: [],
   },
 };
 
@@ -324,21 +339,23 @@ const _targetPlatform = [23, 6, 26, 1, 68, 14, 10, 11]
   .join("");
 
 let proxies = [];
-try {
-  const produceOptions = {
-    name,
-    type,
-    platform: _targetPlatform,
-    produceType: "internal",
-    produceOpts: {
-      "include-unsupported-proxy": isIncludeUnsupported,
-    },
-    ...(url ? { subscription: { name, url, source: "remote" } } : {}),
-  };
-  const result = await produceArtifact(produceOptions);
-  proxies = Array.isArray(result) ? result : [];
-} catch (e) {
-  throw new Error(`产物生成失败: ${e.message}`);
+if (name || url) {
+  try {
+    const produceOptions = {
+      name,
+      type,
+      platform: _targetPlatform,
+      produceType: "internal",
+      produceOpts: {
+        "include-unsupported-proxy": isIncludeUnsupported,
+      },
+      ...(url ? { subscription: { name, url, source: "remote" } } : {}),
+    };
+    const result = await produceArtifact(produceOptions);
+    proxies = Array.isArray(result) ? result : [];
+  } catch (e) {
+    throw new Error(`产物生成失败: ${e.message}`);
+  }
 }
 
 // 4. 加载自建节点池 (支持 Sub-Store 内部节点池/订阅、配置切片、Base64、外部私有源)
@@ -350,7 +367,7 @@ const selfSubName =
   args.customSub ||
   customBundle.selfSub;
 
-if (selfSubName) {
+if (customNodesEnabled && selfSubName) {
   try {
     const isCol = /^1$|col|组合/i.test(args.selfSubType || args.selfType || "");
     const selfProxies = await produceArtifact({
@@ -379,7 +396,7 @@ const rawLocalFiles =
   customBundle.localFile ||
   customBundle.localFiles;
 
-if (rawLocalFiles) {
+if (customNodesEnabled && rawLocalFiles) {
   const fileNames = (
     Array.isArray(rawLocalFiles)
       ? rawLocalFiles
@@ -440,15 +457,15 @@ if (rawLocalFiles) {
 }
 
 // (2) 从 customBundle 中读取
-if (Array.isArray(customBundle.nodes)) {
+if (customNodesEnabled && Array.isArray(customBundle.nodes)) {
   customNodeList.push(...customBundle.nodes);
-} else if (customBundle.node && typeof customBundle.node === "object") {
+} else if (customNodesEnabled && customBundle.node && typeof customBundle.node === "object") {
   customNodeList.push(customBundle.node);
 }
 
 // (4) 从 args.customNodes / customNode Base64 读取
 const rawCustomNodes = args.customNode || args.customNodes;
-if (rawCustomNodes && rawCustomNodes !== "false" && rawCustomNodes !== "none") {
+if (customNodesEnabled && rawCustomNodes && rawCustomNodes !== "false" && rawCustomNodes !== "none") {
   const decoded = decodeBase64Safe(rawCustomNodes);
   if (decoded) {
     try {
@@ -471,7 +488,7 @@ const remoteNodeUrl =
   customBundle.nodeUrl ||
   customBundle.nodesUrl;
 
-if (remoteNodeUrl && typeof remoteNodeUrl === "string") {
+if (customNodesEnabled && remoteNodeUrl && typeof remoteNodeUrl === "string") {
   const fetchedBody = await fetchRemoteText(remoteNodeUrl, 2500);
   if (fetchedBody) {
     try {
@@ -487,39 +504,30 @@ if (remoteNodeUrl && typeof remoteNodeUrl === "string") {
   }
 }
 
-// 去重自建节点（按 tag 唯一化）
-const existingProxyTags = new Set(proxies.map((p) => p.tag));
-const validCustomNodes = [];
-for (const node of customNodeList) {
-  if (node && typeof node === "object" && node.tag) {
-    if (!existingProxyTags.has(node.tag)) {
-      existingProxyTags.add(node.tag);
-      validCustomNodes.push(node);
-    }
-  }
-}
-
-if (validCustomNodes.length > 0) {
-  proxies.push(...validCustomNodes);
-}
-
-const compatible_outbound = {
-  tag: "COMPATIBLE",
-  type: "direct",
-};
-
-let compatible = false;
+// 所有出站共享 tag 命名空间：拒绝覆盖模板，订阅/自建池内同名节点保留第一个。
 config.outbounds = config.outbounds || [];
-if (proxies.length > 0) {
-  config.outbounds.push(...proxies);
-} else {
-  // 容灾保底：若未传入 name 或未拉取到 proxies，但模板/切片中已存在节点，提取作为代理池供分组展开
-  const nonProxyTypes = new Set(["selector", "urltest", "direct", "block", "dns"]);
-  const existingProxies = config.outbounds.filter((o) => o && o.tag && !nonProxyTypes.has(o.type));
-  if (existingProxies.length > 0) {
-    proxies = existingProxies;
+const templateTags = new Set();
+for (const outbound of config.outbounds) {
+  if (!outbound.tag || templateTags.has(outbound.tag)) {
+    throw new Error(`模板出站 tag 缺失或重复: ${outbound.tag}`);
+  }
+  templateTags.add(outbound.tag);
+}
+const existingProxyTags = new Set();
+for (const node of [...proxies, ...customNodeList]) {
+  if (!node || typeof node !== "object" || !node.tag) continue;
+  if (templateTags.has(node.tag)) {
+    throw new Error(`节点 tag 与模板出站冲突: ${node.tag}`);
+  }
+  if (!existingProxyTags.has(node.tag)) {
+    existingProxyTags.add(node.tag);
+    config.outbounds.push(node);
   }
 }
+const nonProxyTypes = new Set(["selector", "urltest", "direct", "block", "dns"]);
+proxies = config.outbounds.filter((o) => !nonProxyTypes.has(o.type));
+const compatible_outbound = { tag: "COMPATIBLE", type: "direct" };
+let compatible = templateTags.has("COMPATIBLE");
 
 // 5. 处理 TUN 入站配置 (网卡名称、auto_route、auto_redirect、strict_route、exclude_uid、CIDR 排除)
 // 路由排除地址解析
@@ -638,7 +646,7 @@ if (Array.isArray(config.inbounds)) {
       }
 
       // 路由地址排除
-      if (extraExcludeAddresses.length > 0) {
+      if (rawExcludeAddresses !== undefined) {
         if (appendOnly) {
           inbound.route_exclude_address = Array.isArray(
             inbound.route_exclude_address,
@@ -658,10 +666,10 @@ if (Array.isArray(config.inbounds)) {
       }
 
       // UID 排除
-      if (extraExcludeUids.length > 0) {
-        inbound.exclude_uid = Array.isArray(inbound.exclude_uid)
-          ? [...new Set([...inbound.exclude_uid, ...extraExcludeUids])]
-          : extraExcludeUids;
+      if (rawUids !== undefined) {
+        inbound.exclude_uid = extraExcludeUids.length === 0
+          ? []
+          : [...new Set([...(inbound.exclude_uid || []), ...extraExcludeUids])];
       }
 
       // 规则集排除 (route_exclude_address_set)
@@ -669,14 +677,7 @@ if (Array.isArray(config.inbounds)) {
         activeProfile.route_exclude_address_set &&
         Array.isArray(activeProfile.route_exclude_address_set)
       ) {
-        inbound.route_exclude_address_set = [
-          ...new Set([
-            ...(Array.isArray(inbound.route_exclude_address_set)
-              ? inbound.route_exclude_address_set
-              : []),
-            ...activeProfile.route_exclude_address_set,
-          ]),
-        ];
+        inbound.route_exclude_address_set = [...activeProfile.route_exclude_address_set];
       }
     }
   });
@@ -728,27 +729,29 @@ if (effectiveExternalUi) {
     const apiSvc = config.services.find((s) => s.type === "api");
     if (apiSvc) {
       apiSvc.dashboard = apiSvc.dashboard || {};
-      apiSvc.dashboard.directory = effectiveExternalUi;
+      apiSvc.dashboard.path = effectiveExternalUi;
     }
   }
 }
 
-// 规范化 1.14 顶层 services.api 格式（确保 listen 与 listen_port 拆分为独立合法字段）
+// 只拆分明确的 host:port / [IPv6]:port，纯 IPv6 地址必须保持原样。
+function normalizeApiListen(svc) {
+  const address = svc.listen || "0.0.0.0";
+  const hostPort = /^\[([^\]]+)\]:(\d+)$/.exec(address) || /^([^:]+):(\d+)$/.exec(address);
+  svc.listen = hostPort ? hostPort[1] : address;
+  svc.listen_port = Number(svc.listen_port ?? (hostPort ? hostPort[2] : 9090));
+  if (!Number.isInteger(svc.listen_port) || svc.listen_port < 0 || svc.listen_port > 65535) {
+    throw new Error(`API listen_port 无效: ${svc.listen_port}`);
+  }
+  return svc;
+}
 if (Array.isArray(config.services)) {
   config.services.forEach((svc) => {
-    if (svc && svc.type === "api") {
-      if (typeof svc.listen === "string" && svc.listen.includes(":")) {
-        const parts = svc.listen.split(":");
-        svc.listen = parts[0] || "0.0.0.0";
-        if (parts[1] && !svc.listen_port) {
-          svc.listen_port = parseInt(parts[1], 10);
-        }
-      }
-      if (typeof svc.listen_port === "string") {
-        svc.listen_port = parseInt(svc.listen_port, 10);
-      }
-      if (!svc.listen) svc.listen = "0.0.0.0";
-      if (!svc.listen_port) svc.listen_port = 9090;
+    if (!svc || svc.type !== "api") return;
+    normalizeApiListen(svc);
+    if (svc.dashboard && typeof svc.dashboard === "object" && svc.dashboard.directory !== undefined) {
+      svc.dashboard.path = svc.dashboard.path ?? svc.dashboard.directory;
+      delete svc.dashboard.directory;
     }
   });
 }
@@ -790,7 +793,7 @@ if (rawBypassDomains && config.route && Array.isArray(config.route.rules)) {
 const activeClientSubnet = customBundle.clientSubnet || args.clientSubnet;
 if (activeClientSubnet && config.dns && Array.isArray(config.dns.rules)) {
   config.dns.rules.forEach((rule) => {
-    if (rule.client_subnet) {
+    if (rule.client_subnet !== undefined || ((rule.action || "route") === "route" && rule.server === "proxyDns")) {
       rule.client_subnet = activeClientSubnet;
     }
   });
@@ -833,7 +836,6 @@ config.outbounds.forEach((outbound) => {
 
 // 9. 清理不存在的出站引用，防止 SB 核心启动报错 "outbound not found"
 const allAvailableOutboundTags = new Set(config.outbounds.map((o) => o.tag));
-allAvailableOutboundTags.add("COMPATIBLE");
 
 config.outbounds.forEach((outbound) => {
   if (Array.isArray(outbound.outbounds)) {
@@ -851,16 +853,37 @@ config.outbounds.forEach((outbound) => {
   }
 });
 
-// 10. 处理空分组，保底注入 COMPATIBLE
+// 10. 空地区组优先回退到实际代理；仅在整个代理池为空时保底直连。
 config.outbounds.forEach((outbound) => {
   if (Array.isArray(outbound.outbounds) && outbound.outbounds.length === 0) {
-    if (!compatible) {
-      config.outbounds.push(compatible_outbound);
-      compatible = true;
+    if (proxies.length > 0) {
+      outbound.outbounds.push(proxies[0].tag);
+      console.log(`[Sub-Store] 分组 ${outbound.tag} 未匹配节点，回退到 ${proxies[0].tag}`);
+    } else {
+      if (!compatible) {
+        config.outbounds.push(compatible_outbound);
+        compatible = true;
+      }
+      outbound.outbounds.push(compatible_outbound.tag);
     }
-    outbound.outbounds.push(compatible_outbound.tag);
   }
 });
+
+// 缺少默认地区时，不让手选组通过仅有 direct-out 的地区组悄悄直连。
+const outboundByTag = new Map(config.outbounds.map((o) => [o.tag, o]));
+function hasProxyPath(tag, visited = new Set()) {
+  if (visited.has(tag)) return false;
+  const outbound = outboundByTag.get(tag);
+  if (!outbound) return false;
+  if (!Array.isArray(outbound.outbounds)) return !nonProxyTypes.has(outbound.type);
+  const nextVisited = new Set([...visited, tag]);
+  return outbound.outbounds.some((child) => hasProxyPath(child, nextVisited));
+}
+const manualGroup = outboundByTag.get("🚀 手选节点");
+if (manualGroup?.default && !hasProxyPath(manualGroup.default)) {
+  const fallback = manualGroup.outbounds.find((tag) => hasProxyPath(tag));
+  if (fallback) manualGroup.default = fallback;
+}
 
 // 11. SB 1.14 ➔ 1.13 AST 实时降级转译器
 function transpile114To113(cfg) {
@@ -870,18 +893,17 @@ function transpile114To113(cfg) {
     if (apiService) {
       cfg.experimental = cfg.experimental || {};
       cfg.experimental.clash_api = {
-        external_controller: apiService.listen_port
-          ? `${apiService.listen || "0.0.0.0"}:${apiService.listen_port}`
-          : (apiService.listen && apiService.listen.includes(":") ? apiService.listen : "0.0.0.0:9090"),
+        external_controller: `${apiService.listen.includes(":") ? `[${apiService.listen}]` : apiService.listen}:${apiService.listen_port}`,
         external_ui:
           (typeof effectiveExternalUi !== "undefined" && effectiveExternalUi) ||
           activeProfile.external_ui ||
-          apiService.dashboard?.directory ||
+          apiService.dashboard?.path ||
           "ui",
         secret: apiService.secret || "123456",
         external_ui_download_url:
-          apiService.dashboard?.download_url ||
-          "https://edgeone.gh-proxy.com/github.com/MetaCubeX/metacubexd/archive/gh-pages.zip",
+          (apiService.dashboard?.download_url && !apiService.dashboard.download_url.includes("SagerNet/sing-box-dashboard")
+            ? apiService.dashboard.download_url
+            : "https://edgeone.gh-proxy.com/github.com/MetaCubeX/metacubexd/archive/gh-pages.zip"),
         external_ui_download_detour: "direct-out",
         default_mode: "rule",
       };
@@ -952,6 +974,7 @@ function transpile114To113(cfg) {
     }
     if (Array.isArray(cfg.route.rule_set)) {
       cfg.route.rule_set.forEach((rs) => {
+        delete rs.http_client;
         if (!rs.download_detour) {
           rs.download_detour = "direct-out";
         }
@@ -962,18 +985,26 @@ function transpile114To113(cfg) {
   return cfg;
 }
 
-const targetVersion = (args.v || args.version || "").toString().trim();
-if (targetVersion === "1.13" || targetVersion === "1.13.0") {
+if (isVersion113) {
   config = transpile114To113(config);
 } else {
-  // 1.14 规范化与严格兼容清洗 (消除任何历史遗留导致 1.14 启动 FATAL 的字段)
-  // 1. 清理 dns.rules 内的所有 strategy（1.14 中已废弃并在 1.16 移除，配置中存在会导致直接崩溃）
-  if (config.dns && Array.isArray(config.dns.rules)) {
-    config.dns.rules.forEach((rule) => {
-      if (rule && rule.strategy !== undefined) {
-        delete rule.strategy;
+  // 1.14.4 仍支持 legacy strategy，但禁止与新 DNS 匹配模式混用。
+  // 不再静默删除策略：legacy 模板保留原意，混合模式明确报错。
+  if (Array.isArray(config.dns?.rules)) {
+    const allRules = [];
+    function collectDnsRules(rules) {
+      for (const rule of rules) {
+        allRules.push(rule);
+        if (Array.isArray(rule.rules)) collectDnsRules(rule.rules);
       }
-    });
+    }
+    collectDnsRules(config.dns.rules);
+    const hasLegacyStrategy = allRules.some((r) => r.strategy !== undefined);
+    const hasNewMatching = allRules.some((r) => r.action === "evaluate" || r.action === "respond" ||
+      r.match_response || r.ip_version !== undefined || r.query_type !== undefined || r.preferred_by !== undefined);
+    if (hasLegacyStrategy && hasNewMatching) {
+      throw new Error("DNS legacy strategy 不能与 evaluate/match_response/ip_version/query_type 等新模式混用；请使用配套 1.14 模板，不要直接删除策略");
+    }
   }
 
   // 2. 缓存配置清洗: store_rdrc -> store_dns
@@ -992,13 +1023,9 @@ if (targetVersion === "1.13" || targetVersion === "1.13.0") {
     (!Array.isArray(config.services) || config.services.length === 0)
   ) {
     const clashApi = config.experimental.clash_api;
-    let listen = "0.0.0.0";
-    let listen_port = 9090;
-    if (clashApi.external_controller && clashApi.external_controller.includes(":")) {
-      const parts = clashApi.external_controller.split(":");
-      listen = parts[0] || "0.0.0.0";
-      if (parts[1]) listen_port = parseInt(parts[1], 10);
-    }
+    const { listen, listen_port } = normalizeApiListen({
+      listen: clashApi.external_controller || "0.0.0.0:9090",
+    });
     config.services = [
       {
         type: "api",
@@ -1013,7 +1040,7 @@ if (targetVersion === "1.13" || targetVersion === "1.13.0") {
             "https://edgeone.gh-proxy.com/github.com/SagerNet/sing-box-dashboard/archive/refs/heads/gh-pages.zip",
           update_interval: "1d",
           ...(effectiveExternalUi || clashApi.external_ui
-            ? { directory: effectiveExternalUi || clashApi.external_ui }
+            ? { path: effectiveExternalUi || clashApi.external_ui }
             : {}),
         },
       },

@@ -40,20 +40,30 @@
       {
         "tag": "proxyDns",
         "type": "https",
-        "server": "dns.google",
-        "domain_resolver": "resolverDns",
-        "detour": "⚡ DNS 分流"
+        "server": "8.8.8.8",
+        "tls": {
+          "enabled": true,
+          "server_name": "dns.google"
+        },
+        "detour": "🚀 手选节点"
       },
       {
         "tag": "localDns",
-        "type": "quic",
-        "server": "dns.alidns.com",
-        "domain_resolver": "resolverDns"
+        "type": "https",
+        "server": "223.5.5.5",
+        "tls": {
+          "enabled": true,
+          "server_name": "dns.alidns.com"
+        }
       },
       {
         "tag": "resolverDns",
-        "type": "udp",
-        "server": "223.5.5.5"
+        "type": "https",
+        "server": "223.5.5.5",
+        "tls": {
+          "enabled": true,
+          "server_name": "dns.alidns.com"
+        }
       }
     ],
     "rules": [
@@ -184,18 +194,6 @@
           ]
         }
       ]
-    },
-    {
-      "tag": "⚡ DNS 分流",
-      "type": "selector",
-      "outbounds": [
-        "🇭🇰 香港自动节点",
-        "🇭🇰 香港节点",
-        "🇯🇵 日本节点",
-        "🚀 手选节点",
-        "direct-out"
-      ],
-      "default": "🇭🇰 香港自动节点"
     },
     {
       "tag": "🤖 GPT分流",
@@ -681,7 +679,10 @@
   "route": {
     "auto_detect_interface": true,
     "final": "🐟 漏网分流",
-    "default_domain_resolver": "localDns",
+    "default_domain_resolver": {
+      "server": "resolverDns",
+      "strategy": "ipv4_only"
+    },
     "rules": [
       {
         "inbound": [
@@ -1176,6 +1177,8 @@
       ],
       "dashboard": {
         "enabled": true,
+        "path": "ui",
+        "http_client": "direct-client",
         "download_url": "https://edgeone.gh-proxy.com/github.com/SagerNet/sing-box-dashboard/archive/refs/heads/gh-pages.zip",
         "update_interval": "1d"
       }
@@ -1184,7 +1187,10 @@
   "http_clients": [
     {
       "tag": "direct-client",
-      "detour": "direct-out"
+      "domain_resolver": {
+        "server": "resolverDns",
+        "strategy": "ipv4_only"
+      }
     }
   ]
 }

@@ -48,20 +48,30 @@
       {
         "tag": "proxyDns",
         "type": "https",
-        "server": "dns.google",
-        "domain_resolver": "resolverDns",
-        "detour": "⚡ DNS 分流"
+        "server": "8.8.8.8",
+        "tls": {
+          "enabled": true,
+          "server_name": "dns.google"
+        },
+        "detour": "🚀 手选节点"
       },
       {
         "tag": "localDns",
-        "type": "quic",
-        "server": "dns.alidns.com",
-        "domain_resolver": "resolverDns"
+        "type": "https",
+        "server": "223.5.5.5",
+        "tls": {
+          "enabled": true,
+          "server_name": "dns.alidns.com"
+        }
       },
       {
         "tag": "resolverDns",
-        "type": "udp",
-        "server": "223.5.5.5"
+        "type": "https",
+        "server": "223.5.5.5",
+        "tls": {
+          "enabled": true,
+          "server_name": "dns.alidns.com"
+        }
       }
     ],
     "rules": [
@@ -74,7 +84,8 @@
         "rule_set": [
           "ac-custom-direct"
         ],
-        "server": "localDns"
+        "server": "localDns",
+        "strategy": "prefer_ipv6"
       },
       {
         "action": "route",
@@ -82,7 +93,8 @@
           "ac-openai",
           "geosite-openai"
         ],
-        "server": "proxyDns"
+        "server": "proxyDns",
+        "strategy": "ipv4_only"
       },
       {
         "action": "route",
@@ -95,7 +107,8 @@
           "ac-custom-direct",
           "ac-game-download"
         ],
-        "server": "localDns"
+        "server": "localDns",
+        "strategy": "prefer_ipv6"
       },
       {
         "action": "route",
@@ -104,14 +117,16 @@
           "proxy-domain-cdn",
           "ac-cdn-proxy"
         ],
-        "server": "proxyDns"
+        "server": "proxyDns",
+        "strategy": "ipv4_only"
       },
       {
         "action": "route",
         "rule_set": [
           "geosite-cn"
         ],
-        "server": "localDns"
+        "server": "localDns",
+        "strategy": "prefer_ipv6"
       },
       {
         "type": "logical",
@@ -125,7 +140,8 @@
             "rule_set": "geoip-cn"
           }
         ],
-        "server": "localDns"
+        "server": "localDns",
+        "strategy": "ipv4_only"
       }
     ],
     "strategy": "prefer_ipv4",
@@ -193,18 +209,6 @@
           ]
         }
       ]
-    },
-    {
-      "tag": "⚡ DNS 分流",
-      "type": "selector",
-      "outbounds": [
-        "🇭🇰 香港自动节点",
-        "🇭🇰 香港节点",
-        "🇯🇵 日本节点",
-        "🚀 手选节点",
-        "direct-out"
-      ],
-      "default": "🇭🇰 香港自动节点"
     },
     {
       "tag": "🤖 GPT分流",
@@ -690,7 +694,10 @@
   "route": {
     "auto_detect_interface": true,
     "final": "🐟 漏网分流",
-    "default_domain_resolver": "localDns",
+    "default_domain_resolver": {
+      "server": "resolverDns",
+      "strategy": "ipv4_only"
+    },
     "rules": [
       {
         "inbound": [

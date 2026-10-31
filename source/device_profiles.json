@@ -2,7 +2,11 @@
   "mac": {
     "interface_name": "momo",
     "auto_route": true,
-    "strict_route": true
+    "auto_redirect": false,
+    "strict_route": true,
+    "exclude_uid": [],
+    "route_exclude_address": [],
+    "route_exclude_address_set": []
   },
   "router": {
     "interface_name": "tun0",
@@ -45,6 +49,10 @@
   "mobile": {
     "interface_name": null,
     "auto_route": true,
-    "strict_route": true
+    "auto_redirect": false,
+    "strict_route": true,
+    "exclude_uid": [],
+    "route_exclude_address": [],
+    "route_exclude_address_set": []
   }
 }
