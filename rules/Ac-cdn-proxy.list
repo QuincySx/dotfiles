@@ -19,7 +19,6 @@ DOMAIN-SUFFIX,proxmox.com
 DOMAIN-SUFFIX,hf.co
 DOMAIN-SUFFIX,huggingface.co
 DOMAIN-SUFFIX,lmstudio.ai
-DOMAIN-SUFFIX,opencode.ai
 DOMAIN-SUFFIX,anythingllm.com
 
 # Google & Commercial Software Bulk Downloads
