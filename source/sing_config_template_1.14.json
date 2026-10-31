@@ -42,7 +42,7 @@
         "type": "https",
         "server": "dns.google",
         "domain_resolver": "resolverDns",
-        "detour": "🚀 手选节点"
+        "detour": "⚡ DNS 分流"
       },
       {
         "tag": "localDns",
@@ -101,7 +101,6 @@
           "ac-cdn-proxy"
         ],
         "server": "proxyDns",
-        "client_subnet": "221.130.33.60/24",
         "strategy": "ipv4_only"
       },
       {
@@ -187,6 +186,18 @@
           ]
         }
       ]
+    },
+    {
+      "tag": "⚡ DNS 分流",
+      "type": "selector",
+      "outbounds": [
+        "🇭🇰 香港自动节点",
+        "🇭🇰 香港节点",
+        "🇯🇵 日本节点",
+        "🚀 手选节点",
+        "direct-out"
+      ],
+      "default": "🇭🇰 香港自动节点"
     },
     {
       "tag": "🤖 GPT分流",
@@ -276,9 +287,10 @@
       "default": "🇺🇲 美国节点"
     },
     {
-      "tag": "Ⓜ️ 大陆服务分流",
+      "tag": "🍎Ⓜ️ 大陆服务分流",
       "type": "selector",
       "outbounds": [
+        "direct-out",
         "🚀 手选节点",
         "🇭🇰 香港自动节点",
         "🇭🇰 香港节点",
@@ -286,8 +298,7 @@
         "🇸🇬 狮城节点",
         "🇯🇵 日本节点",
         "🇺🇲 美国节点",
-        "🇺🇳 其他节点",
-        "direct-out"
+        "🇺🇳 其他节点"
       ],
       "default": "direct-out"
     },
@@ -308,22 +319,6 @@
       "default": "🚀 手选节点"
     },
     {
-      "tag": "🍎 直连分流",
-      "type": "selector",
-      "outbounds": [
-        "🚀 手选节点",
-        "🇭🇰 香港自动节点",
-        "🇭🇰 香港节点",
-        "🇨🇳 台湾节点",
-        "🇸🇬 狮城节点",
-        "🇯🇵 日本节点",
-        "🇺🇲 美国节点",
-        "🇺🇳 其他节点",
-        "direct-out"
-      ],
-      "default": "direct-out"
-    },
-    {
       "tag": "🍎 代理分流",
       "type": "selector",
       "outbounds": [
@@ -340,26 +335,10 @@
       "default": "🚀 手选节点"
     },
     {
-      "tag": "🎮 下载分流",
-      "type": "selector",
-      "outbounds": [
-        "🚀 手选节点",
-        "🇭🇰 香港自动节点",
-        "🇭🇰 香港节点",
-        "🇨🇳 台湾节点",
-        "🇸🇬 狮城节点",
-        "🇯🇵 日本节点",
-        "🇺🇲 美国节点",
-        "🇺🇳 其他节点",
-        "🎮 游戏节点",
-        "direct-out"
-      ],
-      "default": "direct-out"
-    },
-    {
       "tag": "🎮 直连分流",
       "type": "selector",
       "outbounds": [
+        "direct-out",
         "🚀 手选节点",
         "🇭🇰 香港自动节点",
         "🇭🇰 香港节点",
@@ -368,8 +347,7 @@
         "🇯🇵 日本节点",
         "🇺🇲 美国节点",
         "🇺🇳 其他节点",
-        "🎮 游戏节点",
-        "direct-out"
+        "🎮 游戏节点"
       ],
       "default": "direct-out"
     },
@@ -793,25 +771,15 @@
         "rule_set": [
           "apple-cn",
           "apple-cn-cdn",
-          "geosite-apple-cn"
-        ],
-        "outbound": "🍎 直连分流"
-      },
-      {
-        "rule_set": [
+          "geosite-apple-cn",
           "microsoft-cn-cdn",
           "geosite-microsoft-cn"
         ],
-        "outbound": "Ⓜ️ 大陆服务分流"
+        "outbound": "🍎Ⓜ️ 大陆服务分流"
       },
       {
         "rule_set": [
-          "ac-game-download"
-        ],
-        "outbound": "🎮 下载分流"
-      },
-      {
-        "rule_set": [
+          "ac-game-download",
           "ac-steam-cn",
           "geosite-games-cn"
         ],
