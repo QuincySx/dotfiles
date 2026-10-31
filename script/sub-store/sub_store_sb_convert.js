@@ -887,8 +887,7 @@ function transpile114To113(cfg) {
               },
             ],
             server: nextRule.server || "localDns",
-            strategy: nextRule.strategy || "ipv4_only",
-          });
+                      });
           i++; // 跳过匹配的下一条
           continue;
         }
