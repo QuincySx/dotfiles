@@ -1,6 +1,6 @@
 // https://raw.githubusercontent.com/QuincySx/dotfiles/refs/heads/metadata/script/sub-store/sub_store_sb_convert.js#name=机场&device=mac
 //
-// 现代 SB 订阅编译脚本 (支持 1.14 现代语法 & 1.13 自动降级转译)
+// SB 1.14 订阅编译脚本
 //
 // 参数说明:
 // - name: 机场名称（仅使用本地节点切片时可省略）
@@ -19,7 +19,7 @@
 // - nodes / customNodes: 自建节点控制（"none" 或 "false" 则不加载外部自建节点）
 // - customNodesUrl / customNodeUrl: 外部自建节点 JSON 的 URL（支持异步拉取）
 // - custom: 统一打包配置的 Base64 字符串（旧版兼容支持）
-// - v / version: 目标内核版本，默认 1.14。传 "1.13" 时自动执行 AST 语法降级转译
+// - v / version: 目标内核版本，仅支持 1.14（可带补丁版本）
 // - includeUnsupportedProxy: 是否包含 SSR 等非官方协议 (true / false)
 
 const args = $arguments ?? {};
@@ -30,11 +30,10 @@ type = /^1$|col|组合/i.test(type) ? "collection" : "subscription";
 const isIncludeUnsupported =
   includeUnsupportedProxy === true || includeUnsupportedProxy === "true";
 const targetVersion = String(args.v || args.version || "1.14").trim();
-const versionMatch = /^v?1\.(13|14)(?:\.\d+)?(?:[-+][\w.-]+)?$/.exec(targetVersion);
+const versionMatch = /^v?1\.14(?:\.\d+)?(?:[-+][\w.-]+)?$/.exec(targetVersion);
 if (!versionMatch) {
-  throw new Error(`不支持的目标版本: ${targetVersion}，请指定 1.13 或 1.14（可带补丁版本）`);
+  throw new Error(`不支持的目标版本: ${targetVersion}，仅支持 1.14（可带补丁版本）`);
 }
-const isVersion113 = versionMatch[1] === "13";
 const customNodesEnabled = ![false, "false", "none"].includes(args.nodes ?? args.customNodes);
 
 // 安全 Base64 解码函数（防 URL 传输过程中 + 变空格、漏补等号、URL-safe 符号转义）
@@ -151,6 +150,14 @@ if (!config) {
 // 提取所有切片中的节点与模块化配置
 let customNodeList = [];
 
+// 用户追加的业务路由排在模板的地址族限制及目标解析之后。
+function businessRuleInsertIndex(rules) {
+  const resolveIndex = rules.findIndex((rule) => rule.action === "resolve");
+  if (resolveIndex !== -1) return resolveIndex + 1;
+  const index = rules.findIndex((rule) => !["sniff", "hijack-dns"].includes(rule.action));
+  return index === -1 ? rules.length : index;
+}
+
 function mergeOverlaySlice(base, slice) {
   if (!slice || typeof slice !== "object") return;
 
@@ -204,14 +211,7 @@ function mergeOverlaySlice(base, slice) {
     base.route = base.route || {};
     if (Array.isArray(slice.route.rules)) {
       base.route.rules = base.route.rules || [];
-      const insertIdx = base.route.rules.findIndex(
-        (r) => r.action !== "sniff" && r.action !== "hijack-dns",
-      );
-      if (insertIdx !== -1) {
-        base.route.rules.splice(insertIdx, 0, ...slice.route.rules);
-      } else {
-        base.route.rules.unshift(...slice.route.rules);
-      }
+      base.route.rules.splice(businessRuleInsertIndex(base.route.rules), 0, ...slice.route.rules);
     }
     if (Array.isArray(slice.route.rule_set)) {
       base.route.rule_set = base.route.rule_set || [];
@@ -773,19 +773,12 @@ if (rawBypassDomains && config.route && Array.isArray(config.route.rules)) {
     .filter(Boolean);
 
   if (domainList.length > 0) {
-    const insertIdx = config.route.rules.findIndex(
-      (r) => r.action !== "sniff" && r.action !== "hijack-dns",
-    );
     const bypassRule = {
       action: "bypass",
       outbound: "direct-out",
       domain_suffix: domainList,
     };
-    if (insertIdx !== -1) {
-      config.route.rules.splice(insertIdx, 0, bypassRule);
-    } else {
-      config.route.rules.unshift(bypassRule);
-    }
+    config.route.rules.splice(businessRuleInsertIndex(config.route.rules), 0, bypassRule);
   }
 }
 
@@ -885,167 +878,33 @@ if (manualGroup?.default && !hasProxyPath(manualGroup.default)) {
   if (fallback) manualGroup.default = fallback;
 }
 
-// 11. SB 1.14 ➔ 1.13 AST 实时降级转译器
-function transpile114To113(cfg) {
-  // 11.1 将 services 中的 api 转回 experimental.clash_api
-  if (Array.isArray(cfg.services)) {
-    const apiService = cfg.services.find((s) => s.type === "api");
-    if (apiService) {
-      cfg.experimental = cfg.experimental || {};
-      cfg.experimental.clash_api = {
-        external_controller: `${apiService.listen.includes(":") ? `[${apiService.listen}]` : apiService.listen}:${apiService.listen_port}`,
-        external_ui:
-          (typeof effectiveExternalUi !== "undefined" && effectiveExternalUi) ||
-          activeProfile.external_ui ||
-          apiService.dashboard?.path ||
-          "ui",
-        secret: apiService.secret || "123456",
-        external_ui_download_url:
-          (apiService.dashboard?.download_url && !apiService.dashboard.download_url.includes("SagerNet/sing-box-dashboard")
-            ? apiService.dashboard.download_url
-            : "https://edgeone.gh-proxy.com/github.com/MetaCubeX/metacubexd/archive/gh-pages.zip"),
-        external_ui_download_detour: "direct-out",
-        default_mode: "rule",
-      };
-    }
-    delete cfg.services;
-  }
-
-  // 11.2 缓存配置兼容: store_dns 降级为 store_rdrc
-  if (cfg.experimental?.cache_file?.store_dns !== undefined) {
-    cfg.experimental.cache_file.store_rdrc = cfg.experimental.cache_file.store_dns;
-    delete cfg.experimental.cache_file.store_dns;
-  }
-
-  // 11.3 DNS 规则降级: 1.14 preferred_by 与 evaluate 语法转为 1.13 语法
-  if (cfg.dns && Array.isArray(cfg.dns.rules)) {
-    const newDnsRules = [];
-    for (let i = 0; i < cfg.dns.rules.length; i++) {
-      const rule = cfg.dns.rules[i];
-
-      // preferred_by: hosts -> ip_accept_any
-      if (rule.preferred_by === "hosts") {
-        newDnsRules.push({
-          ip_accept_any: true,
-          server: "hosts",
-        });
-        continue;
-      }
-
-      // evaluate + match_response 组合降级为 1.13 logical "and" 规则
-      if (
-        rule.action === "evaluate" &&
-        rule.rule_set === "geosite-geolocation-!cn" &&
-        rule.invert === true
-      ) {
-        const nextRule = cfg.dns.rules[i + 1];
-        if (nextRule && nextRule.rule_set === "geoip-cn" && nextRule.match_response) {
-          newDnsRules.push({
-            type: "logical",
-            mode: "and",
-            rules: [
-              {
-                rule_set: "geosite-geolocation-!cn",
-                invert: true,
-              },
-              {
-                rule_set: "geoip-cn",
-              },
-            ],
-            server: nextRule.server || "localDns",
-                      });
-          i++; // 跳过匹配的下一条
-          continue;
-        }
-      }
-
-      newDnsRules.push(rule);
-    }
-    cfg.dns.rules = newDnsRules;
-  }
-
-  // 11.4 路由与 http_clients 降级: 移除 http_clients 与 default_http_client，确保各规则集携带 download_detour
-  if (cfg.http_clients) {
-    delete cfg.http_clients;
-  }
-  if (cfg.route) {
-    if (cfg.route.default_http_client) {
-      delete cfg.route.default_http_client;
-    }
-    if (Array.isArray(cfg.route.rule_set)) {
-      cfg.route.rule_set.forEach((rs) => {
-        delete rs.http_client;
-        if (!rs.download_detour) {
-          rs.download_detour = "direct-out";
-        }
-      });
+// 11. 1.14 DNS 与缓存配置规范化
+// 1.14.4 仍支持 legacy strategy，但禁止与新 DNS 匹配模式混用。
+// 不再静默删除策略：legacy 模板保留原意，混合模式明确报错。
+if (Array.isArray(config.dns?.rules)) {
+  const allRules = [];
+  function collectDnsRules(rules) {
+    for (const rule of rules) {
+      allRules.push(rule);
+      if (Array.isArray(rule.rules)) collectDnsRules(rule.rules);
     }
   }
-
-  return cfg;
+  collectDnsRules(config.dns.rules);
+  const hasLegacyStrategy = allRules.some((r) => r.strategy !== undefined);
+  const hasNewMatching = allRules.some((r) => r.action === "evaluate" || r.action === "respond" ||
+    r.match_response || r.ip_version !== undefined || r.query_type !== undefined || r.preferred_by !== undefined);
+  if (hasLegacyStrategy && hasNewMatching) {
+    throw new Error("DNS legacy strategy 不能与 evaluate/match_response/ip_version/query_type 等新模式混用；请使用配套 1.14 模板，不要直接删除策略");
+  }
 }
 
-if (isVersion113) {
-  config = transpile114To113(config);
-} else {
-  // 1.14.4 仍支持 legacy strategy，但禁止与新 DNS 匹配模式混用。
-  // 不再静默删除策略：legacy 模板保留原意，混合模式明确报错。
-  if (Array.isArray(config.dns?.rules)) {
-    const allRules = [];
-    function collectDnsRules(rules) {
-      for (const rule of rules) {
-        allRules.push(rule);
-        if (Array.isArray(rule.rules)) collectDnsRules(rule.rules);
-      }
+// 2. 缓存配置清洗: store_rdrc -> store_dns
+if (config.experimental?.cache_file) {
+  if (config.experimental.cache_file.store_rdrc !== undefined) {
+    if (config.experimental.cache_file.store_dns === undefined) {
+      config.experimental.cache_file.store_dns = config.experimental.cache_file.store_rdrc;
     }
-    collectDnsRules(config.dns.rules);
-    const hasLegacyStrategy = allRules.some((r) => r.strategy !== undefined);
-    const hasNewMatching = allRules.some((r) => r.action === "evaluate" || r.action === "respond" ||
-      r.match_response || r.ip_version !== undefined || r.query_type !== undefined || r.preferred_by !== undefined);
-    if (hasLegacyStrategy && hasNewMatching) {
-      throw new Error("DNS legacy strategy 不能与 evaluate/match_response/ip_version/query_type 等新模式混用；请使用配套 1.14 模板，不要直接删除策略");
-    }
-  }
-
-  // 2. 缓存配置清洗: store_rdrc -> store_dns
-  if (config.experimental?.cache_file) {
-    if (config.experimental.cache_file.store_rdrc !== undefined) {
-      if (config.experimental.cache_file.store_dns === undefined) {
-        config.experimental.cache_file.store_dns = config.experimental.cache_file.store_rdrc;
-      }
-      delete config.experimental.cache_file.store_rdrc;
-    }
-  }
-
-  // 3. 若模板中仍残留旧版 experimental.clash_api 且缺少 services，自动迁移到 1.14 services 结构
-  if (
-    config.experimental?.clash_api &&
-    (!Array.isArray(config.services) || config.services.length === 0)
-  ) {
-    const clashApi = config.experimental.clash_api;
-    const { listen, listen_port } = normalizeApiListen({
-      listen: clashApi.external_controller || "0.0.0.0:9090",
-    });
-    config.services = [
-      {
-        type: "api",
-        listen,
-        listen_port,
-        secret: clashApi.secret || "123456",
-        access_control_allow_origin: ["*"],
-        dashboard: {
-          enabled: true,
-          download_url:
-            clashApi.external_ui_download_url ||
-            "https://edgeone.gh-proxy.com/github.com/SagerNet/sing-box-dashboard/archive/refs/heads/gh-pages.zip",
-          update_interval: "1d",
-          ...(effectiveExternalUi || clashApi.external_ui
-            ? { path: effectiveExternalUi || clashApi.external_ui }
-            : {}),
-        },
-      },
-    ];
-    delete config.experimental.clash_api;
+    delete config.experimental.cache_file.store_rdrc;
   }
 }
 

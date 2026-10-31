@@ -4,6 +4,14 @@
     "timestamp": true
   },
   "experimental": {
+    "clash_api": {
+      "external_controller": "0.0.0.0:9090",
+      "external_ui": "ui",
+      "secret": "123456",
+      "external_ui_download_url": "https://edgeone.gh-proxy.com/github.com/MetaCubeX/metacubexd/archive/gh-pages.zip",
+      "external_ui_download_detour": "direct-out",
+      "default_mode": "rule"
+    },
     "cache_file": {
       "enabled": true,
       "store_fakeip": false,
@@ -68,6 +76,38 @@
     ],
     "rules": [
       {
+        "rule_set": [
+          "ac-openai",
+          "geosite-openai",
+          "ac-claude",
+          "proxy-ip-cdn",
+          "proxy-domain-cdn",
+          "ac-cdn-proxy",
+          "geosite-geolocation-!cn",
+          "ac-custom-proxy",
+          "geosite-netflix",
+          "geosite-disney",
+          "geosite-spotify",
+          "ac-exchange",
+          "geosite-category-cryptocurrency",
+          "geosite-tiktok",
+          "geosite-apple-proxy",
+          "geosite-github",
+          "geosite-microsoft",
+          "ac-xbox-proxy",
+          "ac-nintendo-proxy",
+          "geosite-category-games"
+        ],
+        "query_type": [
+          "AAAA",
+          "HTTPS",
+          "SVCB"
+        ],
+        "action": "predefined",
+        "rcode": "NOERROR",
+        "answer": []
+      },
+      {
         "preferred_by": "hosts",
         "action": "route",
         "server": "hosts"
@@ -75,17 +115,18 @@
       {
         "action": "route",
         "rule_set": [
-          "ac-custom-direct"
+          "ac-openai",
+          "geosite-openai",
+          "ac-claude"
         ],
-        "server": "localDns"
+        "server": "proxyDns"
       },
       {
         "action": "route",
         "rule_set": [
-          "ac-openai",
-          "geosite-openai"
+          "ac-custom-direct"
         ],
-        "server": "proxyDns"
+        "server": "localDns"
       },
       {
         "action": "route",
@@ -695,6 +736,44 @@
         "action": "hijack-dns"
       },
       {
+        "type": "logical",
+        "mode": "and",
+        "rules": [
+          {
+            "ip_version": 6
+          },
+          {
+            "rule_set": [
+              "ac-openai",
+              "geosite-openai",
+              "ac-claude",
+              "proxy-ip-cdn",
+              "proxy-domain-cdn",
+              "ac-cdn-proxy",
+              "geosite-geolocation-!cn",
+              "ac-custom-proxy",
+              "geosite-netflix",
+              "geosite-disney",
+              "geosite-spotify",
+              "ac-exchange",
+              "geosite-category-cryptocurrency",
+              "geosite-tiktok",
+              "geosite-apple-proxy",
+              "geosite-github",
+              "geosite-microsoft",
+              "ac-xbox-proxy",
+              "ac-nintendo-proxy",
+              "geosite-category-games"
+            ]
+          }
+        ],
+        "action": "reject"
+      },
+      {
+        "action": "resolve",
+        "strategy": "prefer_ipv4"
+      },
+      {
         "protocol": [
           "bittorrent",
           "stun"
@@ -708,6 +787,20 @@
         ],
         "action": "reject",
         "method": "default"
+      },
+      {
+        "rule_set": [
+          "ac-claude"
+        ],
+        "outbound": "🤖 Claude分流"
+      },
+      {
+        "domain_suffix": [
+          "hs-analytics.net",
+          "hs-scripts.com",
+          "hubspot.com"
+        ],
+        "outbound": "🤖 Claude分流"
       },
       {
         "rule_set": [
@@ -734,12 +827,6 @@
         "ip_is_private": true,
         "action": "bypass",
         "outbound": "direct-out"
-      },
-      {
-        "rule_set": [
-          "ac-claude"
-        ],
-        "outbound": "🤖 Claude分流"
       },
       {
         "rule_set": [
@@ -1166,34 +1253,9 @@
     ],
     "default_http_client": "direct-client"
   },
-  "services": [
-    {
-      "type": "api",
-      "listen": "0.0.0.0",
-      "listen_port": 9090,
-      "secret": "123456",
-      "access_control_allow_origin": [
-        "*"
-      ],
-      "dashboard": {
-        "enabled": true,
-        "path": "ui",
-        "http_client": "dashboard-client",
-        "download_url": "https://edgeone.gh-proxy.com/github.com/SagerNet/sing-box-dashboard/archive/refs/heads/gh-pages.zip",
-        "update_interval": "1d"
-      }
-    }
-  ],
   "http_clients": [
     {
       "tag": "direct-client",
-      "domain_resolver": {
-        "server": "resolverDns",
-        "strategy": "ipv4_only"
-      }
-    },
-    {
-      "tag": "dashboard-client",
       "domain_resolver": {
         "server": "resolverDns",
         "strategy": "ipv4_only"

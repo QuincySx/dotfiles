@@ -5,11 +5,15 @@
         "cdn.usefathom.com"
       ],
       "domain_suffix": [
-        "anthropic.com",
-        "claude.ai",
         "claudeusercontent.com",
         "stripe.com",
-        "claude.com"
+        "anthropic.com",
+        "claude.ai",
+        "claude.com",
+        "clau.de",
+        "hs-analytics.net",
+        "hs-scripts.com",
+        "hubspot.com"
       ]
     }
   ],

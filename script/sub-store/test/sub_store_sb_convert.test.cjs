@@ -11,11 +11,21 @@ const read = (file) => fs.readFileSync(path.join(root, file), 'utf8');
 const clone = (value) => JSON.parse(JSON.stringify(value));
 const template14 = JSON.parse(read('source/sing_config_template_1.14.json'));
 const template13 = JSON.parse(read('source/sing_config_template_1.13.json'));
-const scripts = ['sub_store_sb_convert.js', 'sub_store_sb_convert_1.14.js', 'sub_store_sb_convert_1.13.js'];
+const scripts = ['sub_store_sb_convert.js', 'sub_store_sb_convert_1.14.js'];
 const proxy = {
   type: 'anytls', tag: 'TEST-Hong Kong', server: '127.0.0.1', server_port: 443,
   password: 'test-fixture-only', tls: { enabled: true, server_name: 'example.com' },
 };
+
+function apiServiceTemplate() {
+  const template = clone(template14);
+  delete template.experimental.clash_api;
+  template.services = [{
+    type: 'api', tag: 'api', listen: '127.0.0.1', listen_port: 9090,
+    dashboard: { path: 'ui' },
+  }];
+  return template;
+}
 
 async function convert({ template = template14, script = scripts[0], args = {}, files = [], proxies = [proxy], produceError } = {}) {
   const calls = [];
@@ -55,6 +65,28 @@ test('public template/script aliases stay synchronized', () => {
   assert.equal(read('script/sub-store/sub_store_sb_convert.js'), read('script/sub-store/sub_store_sb_convert_1.14.js'));
 });
 
+test('the template contains the full routing policy without script-generated rules', async () => {
+  const { config } = await convert();
+  assert.deepEqual(config.route.rules, template14.route.rules);
+});
+
+test('Clash API settings survive conversion without creating a different API service', async () => {
+  const { config } = await convert();
+  assert.deepEqual(config.experimental.clash_api, template14.experimental.clash_api);
+  assert(!config.services);
+});
+
+test('Claude and HubSpot business routes precede privacy, ads and mode rules', () => {
+  const rules = template14.route.rules;
+  const claude = rules.findIndex((rule) => rule.outbound === '🤖 Claude分流');
+  const hubspot = rules.findIndex((rule) => rule.domain_suffix?.includes('hubspot.com'));
+  assert(claude > rules.findIndex((rule) => rule.action === 'resolve'));
+  assert.equal(hubspot, claude + 1);
+  for (const rule of rules.filter((rule) => rule.clash_mode || ['🍃 应用净化分流', '🛑 广告分流'].includes(rule.outbound))) {
+    assert(hubspot < rules.indexOf(rule));
+  }
+});
+
 test('bootstrap uses IP-addressed direct DoH, without UDP/QUIC/domain recursion', () => {
   for (const template of [template13, template14]) {
     for (const tag of ['resolverDns', 'localDns']) {
@@ -80,8 +112,8 @@ for (const script of scripts) {
     assert.equal(calls[0].platform, 'sing-box');
     assertReferences(config);
     assert.equal(config.experimental.cache_file.path, '/etc/momo/run/cache.db');
-    assert.equal(config.services[0].dashboard.path, '/etc/momo/run/ui');
-    assert(!('directory' in config.services[0].dashboard));
+    assert.equal(config.experimental.clash_api.external_ui, '/etc/momo/run/ui');
+    assert(!config.services);
     const tun = config.inbounds[0];
     assert.equal(tun.interface_name, 'momo');
     assert.equal(tun.auto_redirect, true);
@@ -94,7 +126,7 @@ for (const script of scripts) {
 
 for (const listen of ['::1', '::', '2001:db8::1']) {
   test(`IPv6 API listener ${listen} is not widened or truncated`, async () => {
-    const template = clone(template14);
+    const template = apiServiceTemplate();
     template.services[0].listen = listen;
     const { config } = await convert({ template });
     assert.equal(config.services[0].listen, listen);
@@ -104,7 +136,7 @@ for (const listen of ['::1', '::', '2001:db8::1']) {
 
 for (const [input, expectedHost, expectedPort] of [['127.0.0.1:12345', '127.0.0.1', 12345], ['[::1]:12345', '::1', 12345]]) {
   test(`legacy API host:port ${input} is split safely`, async () => {
-    const template = clone(template14);
+    const template = apiServiceTemplate();
     template.services[0].listen = input;
     delete template.services[0].listen_port;
     const { config } = await convert({ template });
@@ -114,7 +146,7 @@ for (const [input, expectedHost, expectedPort] of [['127.0.0.1:12345', '127.0.0.
 }
 
 test('legacy dashboard.directory is migrated to path', async () => {
-  const template = clone(template14);
+  const template = apiServiceTemplate();
   delete template.services[0].dashboard.path;
   template.services[0].dashboard.directory = '/tmp/test-ui';
   const { config } = await convert({ template });
@@ -122,42 +154,28 @@ test('legacy dashboard.directory is migrated to path', async () => {
   assert(!('directory' in config.services[0].dashboard));
 });
 
-for (const version of ['1.13', '1.13.0', '1.13.12', 'v1.13.12', '1.13.12-beta.1']) {
-  test(`${version} selects the 1.13 downgrade`, async () => {
+for (const version of ['1.14', '1.14.0', '1.14.4', 'v1.14.4', '1.14.4-beta.1']) {
+  test(`${version} generates the 1.14 configuration`, async () => {
     const { config } = await convert({ args: { v: version, storagePath: 'momo' } });
+    assert(config.experimental.clash_api);
     assert(!config.services);
-    assert(!config.http_clients);
-    assert(!config.route.default_http_client);
-    assert.equal(config.experimental.cache_file.store_rdrc, true);
-    assert(!('store_dns' in config.experimental.cache_file));
-    assert.equal(config.experimental.clash_api.external_ui, '/etc/momo/run/ui');
-    assert(config.experimental.clash_api.external_ui_download_url.includes('metacubexd'));
-    assert(!config.dns.rules.some((rule) => rule.action === 'evaluate' || rule.match_response || rule.preferred_by));
+    assert(config.http_clients);
+    assert.equal(config.experimental.cache_file.store_dns, true);
     assertReferences(config);
   });
 }
 
-test('unsupported versions fail instead of silently targeting 1.14', async () => {
-  await assert.rejects(convert({ args: { v: '1.15' } }), /不支持的目标版本/);
-});
+for (const version of ['1.13', '1.13.12', '1.15']) {
+  test(`${version} is rejected by the 1.14-only entry point`, async () => {
+    await assert.rejects(convert({ args: { v: version } }), /仅支持 1.14/);
+  });
+}
 
-test('1.13 entry point defaults to downgrade; 1.14 entry point does not', async () => {
-  assert((await convert({ script: scripts[2] })).config.experimental.clash_api);
-  assert((await convert({ script: scripts[1] })).config.services);
-});
-
-test('1.13 API downgrade brackets IPv6 correctly', async () => {
-  const template = clone(template14);
-  template.services[0].listen = '::1';
-  const { config } = await convert({ template, args: { v: '1.13.12' } });
-  assert.equal(config.experimental.clash_api.external_controller, '[::1]:9090');
-});
-
-test('legacy 1.13 DNS strategies are preserved, not silently deleted', async () => {
+test('legacy DNS input is preserved when generating 1.14', async () => {
   const { config } = await convert({ template: template13, args: { v: '1.14.4' } });
   assert(config.dns.rules.some((rule) => rule.strategy === 'ipv4_only'));
-  assert(config.services);
-  assert.equal(config.services[0].dashboard.path, 'ui');
+  assert.deepEqual(config.experimental.clash_api, template13.experimental.clash_api);
+  assert(!config.services);
 });
 
 test('mixed legacy strategy and modern DNS matching is rejected with an actionable message', async () => {
@@ -213,16 +231,35 @@ for (const profile of ['mac', 'mobile']) {
   });
 }
 
-// Optional real-core checks: node this-file.cjs /path/to/sing-box-1.14.4 [/path/to/sing-box-1.13]
-for (const [version, binary] of [['1.14.4', process.argv[2]], ['1.13.12', process.argv[3]]]) {
-  for (const template of [template14, template13]) {
-    test(`${version} real core accepts generated ${template === template14 ? '1.14' : '1.13'} template`, { skip: !binary }, async () => {
-      const { config } = await convert({ template, args: { v: version, profile: 'mac', storagePath: '/tmp/sb-test-storage' } });
-      const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'sb-config-test-'));
-      const file = path.join(dir, 'config.json');
-      fs.writeFileSync(file, JSON.stringify(config));
-      const result = spawnSync(binary, ['check', '-c', file, '-D', dir], { encoding: 'utf8', timeout: 20000 });
-      assert.equal(result.status, 0, `${result.error || ''}\n${result.stdout}\n${result.stderr}`);
-    });
+// Optional real-core checks: node this-file.cjs /path/to/sing-box-1.14.4
+const binary = process.argv[2];
+test('1.14.4 real core accepts the generated configuration', { skip: !binary }, async () => {
+  const { config } = await convert({ args: { profile: 'mac', storagePath: '/tmp/sb-test-storage' } });
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'sb-config-test-'));
+  try {
+    const file = path.join(dir, 'config.json');
+    fs.writeFileSync(file, JSON.stringify(config));
+    const result = spawnSync(binary, ['check', '-c', file, '-D', dir], { encoding: 'utf8', timeout: 20000 });
+    assert.equal(result.status, 0, `${result.error || ''}\n${result.stdout}\n${result.stderr}`);
+  } finally {
+    fs.rmSync(dir, { recursive: true, force: true });
   }
-}
+});
+
+test('1.14 real DNS queries distinguish domestic, foreign and unclassified domains', { skip: !binary, timeout: 30000 }, async (t) => {
+  const { config } = await convert({ args: { profile: 'mac' } });
+  await require('./dns_policy_fixture.cjs').checkDns(t, binary, config);
+});
+
+test('1.14 actual connections enforce foreign IPv4 and retain dual-stack fallback elsewhere', { skip: !binary, timeout: 30000 }, async (t) => {
+  const { config } = await convert({
+    args: { profile: 'mac', bypassDomains: 'unknown-v6only.test' },
+    files: [{ route: { rules: [{ domain: ['foreign-explicit.test'], action: 'route', outbound: 'direct-out' }] } }],
+  });
+  await require('./dns_policy_fixture.cjs').checkConnections(t, binary, config);
+});
+
+test('1.14 Clash REST API and dashboard remain available', { skip: !binary, timeout: 20000 }, async (t) => {
+  const { config } = await convert();
+  await require('./dns_policy_fixture.cjs').checkClashApi(t, binary, config);
+});

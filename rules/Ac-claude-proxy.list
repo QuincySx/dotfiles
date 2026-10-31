@@ -8,3 +8,8 @@ DOMAIN-SUFFIX,claude.com
 # For the record, I don't believe Claude will use Short URLs to geo blocking.
 # However, since there is some conspiracy theories surrounding it, I will include it.
 DOMAIN-SUFFIX,clau.de
+
+# HubSpot：用户指定与 Claude 使用同一出口
+DOMAIN-SUFFIX,hs-analytics.net
+DOMAIN-SUFFIX,hs-scripts.com
+DOMAIN-SUFFIX,hubspot.com
