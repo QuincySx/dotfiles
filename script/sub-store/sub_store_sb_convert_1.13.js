@@ -826,7 +826,9 @@ function transpile114To113(cfg) {
     if (apiService) {
       cfg.experimental = cfg.experimental || {};
       cfg.experimental.clash_api = {
-        external_controller: apiService.listen || "0.0.0.0:9090",
+        external_controller: apiService.listen_port
+          ? `${apiService.listen || "0.0.0.0"}:${apiService.listen_port}`
+          : (apiService.listen && apiService.listen.includes(":") ? apiService.listen : "0.0.0.0:9090"),
         external_ui:
           (typeof effectiveExternalUi !== "undefined" && effectiveExternalUi) ||
           activeProfile.external_ui ||

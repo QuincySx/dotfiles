@@ -1173,7 +1173,7 @@
   "services": [
     {
       "type": "api",
-      "listen": "0.0.0.0:9090",
+      "listen": "0.0.0.0",
       "secret": "123456",
       "access_control_allow_origin": [
         "*"
@@ -1182,7 +1182,8 @@
         "enabled": true,
         "download_url": "https://edgeone.gh-proxy.com/github.com/SagerNet/sing-box-dashboard/archive/refs/heads/gh-pages.zip",
         "update_interval": "1d"
-      }
+      },
+      "listen_port": 9090
     }
   ]
 }
