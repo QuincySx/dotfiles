@@ -1162,7 +1162,8 @@
         "url": "https://testingcf.jsdelivr.net/gh/yyhhyyyyyy/sing-box-ruleset@main/non_ip/cdn.srs",
         "download_detour": "direct-out"
       }
-    ]
+    ],
+    "default_http_client": "direct-client"
   },
   "services": [
     {
@@ -1178,6 +1179,12 @@
         "download_url": "https://edgeone.gh-proxy.com/github.com/SagerNet/sing-box-dashboard/archive/refs/heads/gh-pages.zip",
         "update_interval": "1d"
       }
+    }
+  ],
+  "http_clients": [
+    {
+      "tag": "direct-client",
+      "detour": "direct-out"
     }
   ]
 }

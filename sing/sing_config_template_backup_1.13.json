@@ -50,7 +50,7 @@
         "type": "https",
         "server": "dns.google",
         "domain_resolver": "resolverDns",
-        "detour": "🚀 手选节点"
+        "detour": "⚡ DNS 分流"
       },
       {
         "tag": "localDns",
@@ -74,8 +74,7 @@
         "rule_set": [
           "ac-custom-direct"
         ],
-        "server": "localDns",
-        "strategy": "prefer_ipv6"
+        "server": "localDns"
       },
       {
         "action": "route",
@@ -83,8 +82,7 @@
           "ac-openai",
           "geosite-openai"
         ],
-        "server": "proxyDns",
-        "strategy": "ipv4_only"
+        "server": "proxyDns"
       },
       {
         "action": "route",
@@ -93,31 +91,27 @@
           "apple-cn",
           "apple-cn-cdn",
           "microsoft-cn-cdn",
-          "ac-china"
+          "ac-china",
+          "ac-custom-direct",
+          "ac-game-download"
         ],
-        "server": "localDns",
-        "strategy": "prefer_ipv6"
+        "server": "localDns"
       },
       {
         "action": "route",
         "rule_set": [
           "proxy-ip-cdn",
           "proxy-domain-cdn",
-          "proxy-ip-download",
-          "proxy-domain-download",
           "ac-cdn-proxy"
         ],
-        "server": "proxyDns",
-        "client_subnet": "221.130.33.60/24",
-        "strategy": "ipv4_only"
+        "server": "proxyDns"
       },
       {
         "action": "route",
         "rule_set": [
           "geosite-cn"
         ],
-        "server": "localDns",
-        "strategy": "prefer_ipv6"
+        "server": "localDns"
       },
       {
         "type": "logical",
@@ -131,8 +125,7 @@
             "rule_set": "geoip-cn"
           }
         ],
-        "server": "localDns",
-        "strategy": "ipv4_only"
+        "server": "localDns"
       }
     ],
     "strategy": "prefer_ipv4",
@@ -156,8 +149,12 @@
       "route_exclude_address_set": [
         "geoip-cn"
       ],
+      "exclude_uid": [
+        1000
+      ],
       "route_exclude_address": [
-        "5.5.5.5/32"
+        "5.5.5.5/32",
+        "10.10.1.20/32"
       ]
     }
   ],
@@ -180,7 +177,7 @@
         "🇸🇬 狮城节点",
         "🇯🇵 日本节点",
         "🇺🇲 美国节点",
-        "🏴‍☠️ 自建节点",
+        "🏴☠️ 自建节点",
         "🇺🇳 其他节点",
         "🎮 游戏节点",
         "🎥 奈飞节点",
@@ -198,19 +195,30 @@
       ]
     },
     {
+      "tag": "⚡ DNS 分流",
+      "type": "selector",
+      "outbounds": [
+        "🇭🇰 香港自动节点",
+        "🇭🇰 香港节点",
+        "🇯🇵 日本节点",
+        "🚀 手选节点",
+        "direct-out"
+      ],
+      "default": "🇭🇰 香港自动节点"
+    },
+    {
       "tag": "🤖 GPT分流",
       "type": "selector",
       "outbounds": [
         "🚀 手选节点",
         "🇭🇰 香港自动节点",
         "🇭🇰 香港节点",
-        "🏴‍☠️ 自建节点",
+        "🏴☠️ 自建节点",
         "🇨🇳 台湾节点",
         "🇸🇬 狮城节点",
         "🇯🇵 日本节点",
         "🇺🇲 美国节点",
         "🇺🇳 其他节点",
-        "home_kookeey_01",
         "direct-out"
       ],
       "default": "🇯🇵 日本节点"
@@ -222,13 +230,12 @@
         "🚀 手选节点",
         "🇭🇰 香港自动节点",
         "🇭🇰 香港节点",
-        "🏴‍☠️ 自建节点",
+        "🏴☠️ 自建节点",
         "🇨🇳 台湾节点",
         "🇸🇬 狮城节点",
         "🇯🇵 日本节点",
         "🇺🇲 美国节点",
         "🇺🇳 其他节点",
-        "home_kookeey_01",
         "direct-out"
       ],
       "default": "🇯🇵 日本节点"
@@ -241,7 +248,7 @@
         "🚀 手选节点",
         "🇭🇰 香港自动节点",
         "🇭🇰 香港节点",
-        "🏴‍☠️ 自建节点",
+        "🏴☠️ 自建节点",
         "🇨🇳 台湾节点",
         "🇸🇬 狮城节点",
         "🇯🇵 日本节点",
@@ -251,7 +258,7 @@
       ]
     },
     {
-      "tag": "🎥 影视流媒体分流",
+      "tag": "🎥 奈飞、Disney、Spotify 分流",
       "type": "selector",
       "outbounds": [
         "🎥 奈飞节点",
@@ -262,7 +269,6 @@
         "🇸🇬 狮城节点",
         "🇯🇵 日本节点",
         "🇺🇲 美国节点",
-        "🏴‍☠️ 自建节点",
         "🇺🇳 其他节点",
         "direct-out"
       ]
@@ -271,23 +277,23 @@
       "tag": "🎥 TikTok分流",
       "type": "selector",
       "outbounds": [
-        "🇺🇲 美国节点",
         "🚀 手选节点",
-        "🏴‍☠️ 自建节点",
         "🇭🇰 香港自动节点",
         "🇭🇰 香港节点",
         "🇨🇳 台湾节点",
         "🇸🇬 狮城节点",
         "🇯🇵 日本节点",
+        "🇺🇲 美国节点",
         "🇺🇳 其他节点",
         "direct-out"
       ],
       "default": "🇺🇲 美国节点"
     },
     {
-      "tag": "Ⓜ️ 大陆服务分流",
+      "tag": "🍎Ⓜ️ 大陆服务分流",
       "type": "selector",
       "outbounds": [
+        "direct-out",
         "🚀 手选节点",
         "🇭🇰 香港自动节点",
         "🇭🇰 香港节点",
@@ -295,8 +301,7 @@
         "🇸🇬 狮城节点",
         "🇯🇵 日本节点",
         "🇺🇲 美国节点",
-        "🇺🇳 其他节点",
-        "direct-out"
+        "🇺🇳 其他节点"
       ],
       "default": "direct-out"
     },
@@ -317,22 +322,6 @@
       "default": "🚀 手选节点"
     },
     {
-      "tag": "🍎 直连分流",
-      "type": "selector",
-      "outbounds": [
-        "🚀 手选节点",
-        "🇭🇰 香港自动节点",
-        "🇭🇰 香港节点",
-        "🇨🇳 台湾节点",
-        "🇸🇬 狮城节点",
-        "🇯🇵 日本节点",
-        "🇺🇲 美国节点",
-        "🇺🇳 其他节点",
-        "direct-out"
-      ],
-      "default": "direct-out"
-    },
-    {
       "tag": "🍎 代理分流",
       "type": "selector",
       "outbounds": [
@@ -349,26 +338,10 @@
       "default": "🚀 手选节点"
     },
     {
-      "tag": "🎮 下载分流",
-      "type": "selector",
-      "outbounds": [
-        "🚀 手选节点",
-        "🇭🇰 香港自动节点",
-        "🇭🇰 香港节点",
-        "🇨🇳 台湾节点",
-        "🇸🇬 狮城节点",
-        "🇯🇵 日本节点",
-        "🇺🇲 美国节点",
-        "🇺🇳 其他节点",
-        "🎮 游戏节点",
-        "direct-out"
-      ],
-      "default": "direct-out"
-    },
-    {
       "tag": "🎮 直连分流",
       "type": "selector",
       "outbounds": [
+        "direct-out",
         "🚀 手选节点",
         "🇭🇰 香港自动节点",
         "🇭🇰 香港节点",
@@ -377,8 +350,7 @@
         "🇯🇵 日本节点",
         "🇺🇲 美国节点",
         "🇺🇳 其他节点",
-        "🎮 游戏节点",
-        "direct-out"
+        "🎮 游戏节点"
       ],
       "default": "direct-out"
     },
@@ -442,6 +414,7 @@
         "🚀 手选节点",
         "🇭🇰 香港自动节点",
         "🇭🇰 香港节点",
+        "🇺🇳 低倍节点",
         "🇨🇳 台湾节点",
         "🇸🇬 狮城节点",
         "🇯🇵 日本节点",
@@ -556,11 +529,10 @@
       ]
     },
     {
-      "tag": "🏴‍☠️ 自建节点",
+      "tag": "🏴☠️ 自建节点",
       "type": "selector",
       "outbounds": [
         "{all}",
-        "self-hk-chain-01",
         "self-la02-anyreality-vmiss",
         "direct-out"
       ],
@@ -692,7 +664,7 @@
         "🇭🇰 香港节点",
         "🇨🇳 台湾节点",
         "🇸🇬 狮城节点",
-        "🏴‍☠️ 自建节点",
+        "🏴☠️ 自建节点",
         "🇯🇵 日本节点",
         "🇺🇲 美国节点",
         "🇺🇳 其他节点",
@@ -732,7 +704,8 @@
       },
       {
         "protocol": [
-          "bittorrent"
+          "bittorrent",
+          "stun"
         ],
         "action": "route",
         "outbound": "direct-out"
@@ -777,12 +750,6 @@
         "outbound": "🤖 Claude分流"
       },
       {
-        "protocol": [
-          "stun"
-        ],
-        "outbound": "direct-out"
-      },
-      {
         "rule_set": [
           "ac-openai",
           "geosite-openai"
@@ -791,100 +758,16 @@
       },
       {
         "action": "bypass",
-        "rule_set": [
-          "geosite-lite-cn",
-          "ac-china",
-          "ac-custom-direct"
-        ],
-        "outbound": "direct-out"
+        "outbound": "direct-out",
+        "rule_set": "geoip-cn"
       },
       {
-        "rule_set": [
-          "apple-cn",
-          "apple-cn-cdn",
-          "geosite-apple-cn"
-        ],
-        "outbound": "🍎 直连分流"
-      },
-      {
-        "rule_set": [
-          "microsoft-cn-cdn",
-          "geosite-microsoft-cn"
-        ],
-        "outbound": "Ⓜ️ 大陆服务分流"
-      },
-      {
-        "rule_set": [
-          "ac-game-download"
-        ],
-        "outbound": "🎮 下载分流"
-      },
-      {
-        "rule_set": [
-          "ac-steam-cn",
-          "geosite-games-cn"
-        ],
-        "outbound": "🎮 直连分流"
-      },
-      {
-        "rule_set": [
-          "geoip-netflix",
-          "geosite-netflix",
-          "geosite-disney",
-          "geosite-youtube"
-        ],
-        "outbound": "🎥 影视流媒体分流"
-      },
-      {
-        "rule_set": [
-          "geosite-tiktok",
-          "geosite-spotify"
-        ],
-        "outbound": "🎥 TikTok分流"
-      },
-      {
+        "action": "bypass",
+        "outbound": "direct-out",
         "domain_suffix": [
-          "capcut.com",
-          "capcutapi.com",
-          "capcutapi.us",
-          "capcutcdn-us.com",
-          "byteoversea.net",
-          "byteeffecttos-g.com",
-          "ibyteimg.com",
-          "ibytedtos.com"
-        ],
-        "outbound": "🎥 TikTok分流"
-      },
-      {
-        "rule_set": [
-          "ac-exchange",
-          "geosite-category-cryptocurrency"
-        ],
-        "outbound": "🏦 交易所分流"
-      },
-      {
-        "rule_set": [
-          "geosite-apple-proxy",
-          "apple-services"
-        ],
-        "outbound": "🍎 代理分流"
-      },
-      {
-        "rule_set": [
-          "geosite-github"
-        ],
-        "outbound": "🚀 手选节点"
-      },
-      {
-        "rule_set": "geosite-microsoft",
-        "outbound": "Ⓜ️ 服务分流"
-      },
-      {
-        "rule_set": [
-          "ac-xbox-proxy",
-          "geosite-category-games"
-        ],
-        "outbound": "🎮 分流"
+          "xethub.hf.co",
+          "in.appcenter.ms"
+        ]
       },
       {
         "domain_suffix": [
@@ -901,17 +784,92 @@
         "outbound": "🚀 手选节点"
       },
       {
+        "action": "bypass",
+        "rule_set": [
+          "geosite-lite-cn",
+          "ac-china"
+        ],
+        "outbound": "direct-out"
+      },
+      {
         "rule_set": [
           "proxy-ip-cdn",
           "proxy-domain-cdn",
-          "proxy-ip-download",
-          "proxy-domain-download",
           "ac-cdn-proxy"
         ],
         "outbound": "🚀 CDN 分流"
       },
       {
         "rule_set": [
+          "apple-cn",
+          "apple-cn-cdn",
+          "geosite-apple-cn",
+          "microsoft-cn-cdn",
+          "geosite-microsoft-cn"
+        ],
+        "outbound": "🍎Ⓜ️ 大陆服务分流"
+      },
+      {
+        "rule_set": [
+          "ac-game-download"
+        ],
+        "action": "bypass",
+        "outbound": "direct-out"
+      },
+      {
+        "rule_set": [
+          "ac-steam-cn",
+          "geosite-games-cn"
+        ],
+        "outbound": "🎮 直连分流"
+      },
+      {
+        "rule_set": [
+          "geoip-netflix",
+          "geosite-netflix",
+          "geosite-disney",
+          "geosite-spotify"
+        ],
+        "outbound": "🎥 奈飞、Disney、Spotify 分流"
+      },
+      {
+        "rule_set": [
+          "ac-exchange",
+          "geosite-category-cryptocurrency"
+        ],
+        "outbound": "🏦 交易所分流"
+      },
+      {
+        "rule_set": "geosite-tiktok",
+        "outbound": "🎥 TikTok分流"
+      },
+      {
+        "rule_set": [
+          "geosite-apple-proxy"
+        ],
+        "outbound": "🍎 代理分流"
+      },
+      {
+        "rule_set": [
+          "geosite-github"
+        ],
+        "outbound": "🚀 手选节点"
+      },
+      {
+        "rule_set": "geosite-microsoft",
+        "outbound": "Ⓜ️ 服务分流"
+      },
+      {
+        "rule_set": [
+          "ac-xbox-proxy",
+          "ac-nintendo-proxy",
+          "geosite-category-games"
+        ],
+        "outbound": "🎮 分流"
+      },
+      {
+        "rule_set": [
+          "ac-custom-direct",
           "geosite-cn"
         ],
         "action": "bypass",
@@ -930,6 +888,13 @@
           }
         ],
         "outbound": "direct-out"
+      },
+      {
+        "action": "bypass",
+        "outbound": "direct-out",
+        "domain_suffix": [
+          "icloud-content.com"
+        ]
       }
     ],
     "rule_set": [
@@ -983,6 +948,13 @@
         "download_detour": "direct-out"
       },
       {
+        "tag": "ac-nintendo-proxy",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://testingcf.jsdelivr.net/gh/QuincySx/dotfiles@metadata/sing/rules/Ac-nintendo-proxy.srs",
+        "download_detour": "direct-out"
+      },
+      {
         "tag": "ac-privacy-ban",
         "type": "remote",
         "format": "binary",
@@ -1028,91 +1000,84 @@
         "tag": "geosite-category-httpdns-cn",
         "type": "remote",
         "format": "binary",
-        "url": "https://testingcf.jsdelivr.net/gh/QuincySx/dotfiles@metadata/sing/rules/geosite/category-httpdns-cn.srs",
+        "url": "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@sing/geo/geosite/category-httpdns-cn.srs",
         "download_detour": "direct-out"
       },
       {
         "tag": "geosite-category-ads-all",
         "type": "remote",
         "format": "binary",
-        "url": "https://testingcf.jsdelivr.net/gh/QuincySx/dotfiles@metadata/sing/rules/geosite/category-ads-all.srs",
+        "url": "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@sing/geo/geosite/category-ads-all.srs",
         "download_detour": "direct-out"
       },
       {
         "tag": "geosite-openai",
         "type": "remote",
         "format": "binary",
-        "url": "https://testingcf.jsdelivr.net/gh/QuincySx/dotfiles@metadata/sing/rules/OpenAI.srs",
+        "url": "https://testingcf.jsdelivr.net/gh/Toperlock/sing-box-geosite@main/rule/OpenAI.srs",
         "download_detour": "direct-out"
       },
       {
         "tag": "geosite-github",
         "type": "remote",
         "format": "binary",
-        "url": "https://testingcf.jsdelivr.net/gh/QuincySx/dotfiles@metadata/sing/rules/geosite/github.srs",
+        "url": "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@sing/geo/geosite/github.srs",
         "download_detour": "direct-out"
       },
       {
         "tag": "geosite-spotify",
         "type": "remote",
         "format": "binary",
-        "url": "https://testingcf.jsdelivr.net/gh/QuincySx/dotfiles@metadata/sing/rules/geosite/spotify.srs",
+        "url": "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@sing/geo/geosite/spotify.srs",
         "download_detour": "direct-out"
       },
       {
         "tag": "geosite-tiktok",
         "type": "remote",
         "format": "binary",
-        "url": "https://testingcf.jsdelivr.net/gh/QuincySx/dotfiles@metadata/sing/rules/geosite/tiktok.srs",
+        "url": "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@sing/geo/geosite/tiktok.srs",
         "download_detour": "direct-out"
       },
       {
         "tag": "geoip-netflix",
         "type": "remote",
         "format": "binary",
-        "url": "https://testingcf.jsdelivr.net/gh/QuincySx/dotfiles@metadata/sing/rules/geoip/netflix.srs",
+        "url": "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@sing/geo/geoip/netflix.srs",
         "download_detour": "direct-out"
       },
       {
         "tag": "geosite-netflix",
         "type": "remote",
         "format": "binary",
-        "url": "https://testingcf.jsdelivr.net/gh/QuincySx/dotfiles@metadata/sing/rules/geosite/netflix.srs",
+        "url": "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@sing/geo/geosite/netflix.srs",
         "download_detour": "direct-out"
       },
       {
         "tag": "geosite-disney",
         "type": "remote",
         "format": "binary",
-        "url": "https://testingcf.jsdelivr.net/gh/QuincySx/dotfiles@metadata/sing/rules/geosite/disney.srs",
-        "download_detour": "direct-out"
-      },
-      {
-        "tag": "geosite-youtube",
-        "type": "remote",
-        "format": "binary",
-        "url": "https://testingcf.jsdelivr.net/gh/QuincySx/dotfiles@metadata/sing/rules/geosite/youtube.srs",
+        "url": "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@sing/geo/geosite/disney.srs",
         "download_detour": "direct-out"
       },
       {
         "tag": "apple-cn",
         "type": "remote",
         "format": "binary",
-        "url": "https://testingcf.jsdelivr.net/gh/QuincySx/dotfiles@metadata/sing/rules/apple_cn.srs",
+        "url": "https://testingcf.jsdelivr.net/gh/yyhhyyyyyy/sing-box-ruleset@main/non_ip/apple_cn.srs",
         "download_detour": "direct-out"
       },
       {
         "tag": "apple-cn-cdn",
         "type": "remote",
         "format": "binary",
-        "url": "https://testingcf.jsdelivr.net/gh/QuincySx/dotfiles@metadata/sing/rules/domainset/apple_cdn.srs",
+        "url": "https://testingcf.jsdelivr.net/gh/yyhhyyyyyy/sing-box-ruleset@main/domainset/apple_cdn.srs",
         "download_detour": "direct-out"
       },
       {
         "tag": "geosite-apple-cn",
         "type": "remote",
         "format": "binary",
-        "url": "https://testingcf.jsdelivr.net/gh/QuincySx/dotfiles@metadata/sing/rules/geosite/apple@cn.srs",
+        "url": "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@sing/geo/geosite/apple@cn.srs",
         "download_detour": "direct-out"
       },
       {
@@ -1123,66 +1088,59 @@
         "download_detour": "direct-out"
       },
       {
-        "tag": "apple-services",
-        "type": "remote",
-        "format": "binary",
-        "url": "https://testingcf.jsdelivr.net/gh/QuincySx/dotfiles@metadata/sing/rules/apple_services.srs",
-        "download_detour": "direct-out"
-      },
-      {
         "tag": "geosite-microsoft",
         "type": "remote",
         "format": "binary",
-        "url": "https://testingcf.jsdelivr.net/gh/QuincySx/dotfiles@metadata/sing/rules/geosite/microsoft.srs",
+        "url": "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@sing/geo/geosite/microsoft.srs",
         "download_detour": "direct-out"
       },
       {
         "tag": "microsoft-cn-cdn",
         "type": "remote",
         "format": "binary",
-        "url": "https://testingcf.jsdelivr.net/gh/QuincySx/dotfiles@metadata/sing/rules/microsoft_cdn.srs",
+        "url": "https://testingcf.jsdelivr.net/gh/yyhhyyyyyy/sing-box-ruleset@main/non_ip/microsoft_cdn.srs",
         "download_detour": "direct-out"
       },
       {
         "tag": "geosite-microsoft-cn",
         "type": "remote",
         "format": "binary",
-        "url": "https://testingcf.jsdelivr.net/gh/QuincySx/dotfiles@metadata/sing/rules/geosite/microsoft@cn.srs",
+        "url": "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@sing/geo/geosite/microsoft@cn.srs",
         "download_detour": "direct-out"
       },
       {
         "tag": "geosite-category-games",
         "type": "remote",
         "format": "binary",
-        "url": "https://testingcf.jsdelivr.net/gh/QuincySx/dotfiles@metadata/sing/rules/geosite/category-games.srs",
+        "url": "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@sing/geo/geosite/category-games.srs",
         "download_detour": "direct-out"
       },
       {
         "tag": "geosite-category-cryptocurrency",
         "type": "remote",
         "format": "binary",
-        "url": "https://testingcf.jsdelivr.net/gh/QuincySx/dotfiles@metadata/sing/rules/geosite/category-cryptocurrency.srs",
+        "url": "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@sing/geo/geosite/category-cryptocurrency.srs",
         "download_detour": "direct-out"
       },
       {
         "tag": "geosite-games-cn",
         "type": "remote",
         "format": "binary",
-        "url": "https://testingcf.jsdelivr.net/gh/QuincySx/dotfiles@metadata/sing/rules/geosite/category-games@cn.srs",
+        "url": "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@sing/geo/geosite/category-games@cn.srs",
         "download_detour": "direct-out"
       },
       {
         "tag": "geosite-geolocation-!cn",
         "type": "remote",
         "format": "binary",
-        "url": "https://testingcf.jsdelivr.net/gh/QuincySx/dotfiles@metadata/sing/rules/geosite/geolocation-!cn.srs",
+        "url": "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@sing/geo/geosite/geolocation-!cn.srs",
         "download_detour": "direct-out"
       },
       {
         "tag": "geoip-cn",
         "type": "remote",
         "format": "binary",
-        "url": "https://testingcf.jsdelivr.net/gh/QuincySx/dotfiles@metadata/sing/rules/geoip/cn.srs",
+        "url": "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@sing/geo/geoip/cn.srs",
         "download_detour": "direct-out"
       },
       {
@@ -1203,28 +1161,14 @@
         "tag": "proxy-domain-cdn",
         "type": "remote",
         "format": "binary",
-        "url": "https://testingcf.jsdelivr.net/gh/QuincySx/dotfiles@metadata/sing/rules/domainset/cdn.srs",
+        "url": "https://testingcf.jsdelivr.net/gh/yyhhyyyyyy/sing-box-ruleset@main/domainset/cdn.srs",
         "download_detour": "direct-out"
       },
       {
         "tag": "proxy-ip-cdn",
         "type": "remote",
         "format": "binary",
-        "url": "https://testingcf.jsdelivr.net/gh/QuincySx/dotfiles@metadata/sing/rules/cdn.srs",
-        "download_detour": "direct-out"
-      },
-      {
-        "tag": "proxy-domain-download",
-        "type": "remote",
-        "format": "binary",
-        "url": "https://testingcf.jsdelivr.net/gh/QuincySx/dotfiles@metadata/sing/rules/domainset/download.srs",
-        "download_detour": "direct-out"
-      },
-      {
-        "tag": "proxy-ip-download",
-        "type": "remote",
-        "format": "binary",
-        "url": "https://testingcf.jsdelivr.net/gh/QuincySx/dotfiles@metadata/sing/rules/download.srs",
+        "url": "https://testingcf.jsdelivr.net/gh/yyhhyyyyyy/sing-box-ruleset@main/non_ip/cdn.srs",
         "download_detour": "direct-out"
       }
     ]
