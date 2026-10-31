@@ -895,273 +895,273 @@
         "type": "remote",
         "format": "binary",
         "url": "https://testingcf.jsdelivr.net/gh/QuincySx/dotfiles@metadata/sing/rules/Ac-chat-proxy.srs",
-        "download_detour": "direct-out"
+        "http_client": "direct-client"
       },
       {
         "tag": "ac-claude",
         "type": "remote",
         "format": "binary",
         "url": "https://testingcf.jsdelivr.net/gh/QuincySx/dotfiles@metadata/sing/rules/Ac-claude-proxy.srs",
-        "download_detour": "direct-out"
+        "http_client": "direct-client"
       },
       {
         "tag": "ac-china",
         "type": "remote",
         "format": "binary",
         "url": "https://testingcf.jsdelivr.net/gh/QuincySx/dotfiles@metadata/sing/rules/Ac-china.srs",
-        "download_detour": "direct-out"
+        "http_client": "direct-client"
       },
       {
         "tag": "ac-custom-direct",
         "type": "remote",
         "format": "binary",
         "url": "https://testingcf.jsdelivr.net/gh/QuincySx/dotfiles@metadata/sing/rules/Ac-custom-direct.srs",
-        "download_detour": "direct-out"
+        "http_client": "direct-client"
       },
       {
         "tag": "ac-custom-proxy",
         "type": "remote",
         "format": "binary",
         "url": "https://testingcf.jsdelivr.net/gh/QuincySx/dotfiles@metadata/sing/rules/Ac-custom-proxy.srs",
-        "download_detour": "direct-out"
+        "http_client": "direct-client"
       },
       {
         "tag": "ac-exchange",
         "type": "remote",
         "format": "binary",
         "url": "https://testingcf.jsdelivr.net/gh/QuincySx/dotfiles@metadata/sing/rules/Ac-exchange.srs",
-        "download_detour": "direct-out"
+        "http_client": "direct-client"
       },
       {
         "tag": "ac-game-download",
         "type": "remote",
         "format": "binary",
         "url": "https://testingcf.jsdelivr.net/gh/QuincySx/dotfiles@metadata/sing/rules/Ac-game-download.srs",
-        "download_detour": "direct-out"
+        "http_client": "direct-client"
       },
       {
         "tag": "ac-nintendo-proxy",
         "type": "remote",
         "format": "binary",
         "url": "https://testingcf.jsdelivr.net/gh/QuincySx/dotfiles@metadata/sing/rules/Ac-nintendo-proxy.srs",
-        "download_detour": "direct-out"
+        "http_client": "direct-client"
       },
       {
         "tag": "ac-privacy-ban",
         "type": "remote",
         "format": "binary",
         "url": "https://testingcf.jsdelivr.net/gh/QuincySx/dotfiles@metadata/sing/rules/Ac-privacy-ban.srs",
-        "download_detour": "direct-out"
+        "http_client": "direct-client"
       },
       {
         "tag": "ac-scam-ban",
         "type": "remote",
         "format": "binary",
         "url": "https://testingcf.jsdelivr.net/gh/QuincySx/dotfiles@metadata/sing/rules/Ac-scam-ban.srs",
-        "download_detour": "direct-out"
+        "http_client": "direct-client"
       },
       {
         "tag": "ac-steam-cn",
         "type": "remote",
         "format": "binary",
         "url": "https://testingcf.jsdelivr.net/gh/QuincySx/dotfiles@metadata/sing/rules/Ac-steam-cn.srs",
-        "download_detour": "direct-out"
+        "http_client": "direct-client"
       },
       {
         "tag": "ac-xbox-proxy",
         "type": "remote",
         "format": "binary",
         "url": "https://testingcf.jsdelivr.net/gh/QuincySx/dotfiles@metadata/sing/rules/Ac-xbox-proxy.srs",
-        "download_detour": "direct-out"
+        "http_client": "direct-client"
       },
       {
         "tag": "ac-cdn-proxy",
         "type": "remote",
         "format": "binary",
         "url": "https://testingcf.jsdelivr.net/gh/QuincySx/dotfiles@metadata/sing/rules/Ac-cdn-proxy.srs",
-        "download_detour": "direct-out"
+        "http_client": "direct-client"
       },
       {
         "tag": "ac-httpdns-ban",
         "type": "remote",
         "format": "binary",
         "url": "https://testingcf.jsdelivr.net/gh/QuincySx/dotfiles@metadata/sing/rules/Ac-httpdns-ban.srs",
-        "download_detour": "direct-out"
+        "http_client": "direct-client"
       },
       {
         "tag": "geosite-category-httpdns-cn",
         "type": "remote",
         "format": "binary",
         "url": "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@sing/geo/geosite/category-httpdns-cn.srs",
-        "download_detour": "direct-out"
+        "http_client": "direct-client"
       },
       {
         "tag": "geosite-category-ads-all",
         "type": "remote",
         "format": "binary",
         "url": "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@sing/geo/geosite/category-ads-all.srs",
-        "download_detour": "direct-out"
+        "http_client": "direct-client"
       },
       {
         "tag": "geosite-openai",
         "type": "remote",
         "format": "binary",
         "url": "https://testingcf.jsdelivr.net/gh/Toperlock/sing-box-geosite@main/rule/OpenAI.srs",
-        "download_detour": "direct-out"
+        "http_client": "direct-client"
       },
       {
         "tag": "geosite-github",
         "type": "remote",
         "format": "binary",
         "url": "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@sing/geo/geosite/github.srs",
-        "download_detour": "direct-out"
+        "http_client": "direct-client"
       },
       {
         "tag": "geosite-spotify",
         "type": "remote",
         "format": "binary",
         "url": "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@sing/geo/geosite/spotify.srs",
-        "download_detour": "direct-out"
+        "http_client": "direct-client"
       },
       {
         "tag": "geosite-tiktok",
         "type": "remote",
         "format": "binary",
         "url": "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@sing/geo/geosite/tiktok.srs",
-        "download_detour": "direct-out"
+        "http_client": "direct-client"
       },
       {
         "tag": "geoip-netflix",
         "type": "remote",
         "format": "binary",
         "url": "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@sing/geo/geoip/netflix.srs",
-        "download_detour": "direct-out"
+        "http_client": "direct-client"
       },
       {
         "tag": "geosite-netflix",
         "type": "remote",
         "format": "binary",
         "url": "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@sing/geo/geosite/netflix.srs",
-        "download_detour": "direct-out"
+        "http_client": "direct-client"
       },
       {
         "tag": "geosite-disney",
         "type": "remote",
         "format": "binary",
         "url": "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@sing/geo/geosite/disney.srs",
-        "download_detour": "direct-out"
+        "http_client": "direct-client"
       },
       {
         "tag": "apple-cn",
         "type": "remote",
         "format": "binary",
         "url": "https://testingcf.jsdelivr.net/gh/yyhhyyyyyy/sing-box-ruleset@main/non_ip/apple_cn.srs",
-        "download_detour": "direct-out"
+        "http_client": "direct-client"
       },
       {
         "tag": "apple-cn-cdn",
         "type": "remote",
         "format": "binary",
         "url": "https://testingcf.jsdelivr.net/gh/yyhhyyyyyy/sing-box-ruleset@main/domainset/apple_cdn.srs",
-        "download_detour": "direct-out"
+        "http_client": "direct-client"
       },
       {
         "tag": "geosite-apple-cn",
         "type": "remote",
         "format": "binary",
         "url": "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@sing/geo/geosite/apple@cn.srs",
-        "download_detour": "direct-out"
+        "http_client": "direct-client"
       },
       {
         "tag": "geosite-apple-proxy",
         "type": "remote",
         "format": "binary",
         "url": "https://testingcf.jsdelivr.net/gh/QuincySx/dotfiles@metadata/sing/rules/Ac-apple-proxy.srs",
-        "download_detour": "direct-out"
+        "http_client": "direct-client"
       },
       {
         "tag": "geosite-microsoft",
         "type": "remote",
         "format": "binary",
         "url": "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@sing/geo/geosite/microsoft.srs",
-        "download_detour": "direct-out"
+        "http_client": "direct-client"
       },
       {
         "tag": "microsoft-cn-cdn",
         "type": "remote",
         "format": "binary",
         "url": "https://testingcf.jsdelivr.net/gh/yyhhyyyyyy/sing-box-ruleset@main/non_ip/microsoft_cdn.srs",
-        "download_detour": "direct-out"
+        "http_client": "direct-client"
       },
       {
         "tag": "geosite-microsoft-cn",
         "type": "remote",
         "format": "binary",
         "url": "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@sing/geo/geosite/microsoft@cn.srs",
-        "download_detour": "direct-out"
+        "http_client": "direct-client"
       },
       {
         "tag": "geosite-category-games",
         "type": "remote",
         "format": "binary",
         "url": "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@sing/geo/geosite/category-games.srs",
-        "download_detour": "direct-out"
+        "http_client": "direct-client"
       },
       {
         "tag": "geosite-category-cryptocurrency",
         "type": "remote",
         "format": "binary",
         "url": "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@sing/geo/geosite/category-cryptocurrency.srs",
-        "download_detour": "direct-out"
+        "http_client": "direct-client"
       },
       {
         "tag": "geosite-games-cn",
         "type": "remote",
         "format": "binary",
         "url": "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@sing/geo/geosite/category-games@cn.srs",
-        "download_detour": "direct-out"
+        "http_client": "direct-client"
       },
       {
         "tag": "geosite-geolocation-!cn",
         "type": "remote",
         "format": "binary",
         "url": "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@sing/geo/geosite/geolocation-!cn.srs",
-        "download_detour": "direct-out"
+        "http_client": "direct-client"
       },
       {
         "tag": "geoip-cn",
         "type": "remote",
         "format": "binary",
         "url": "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@sing/geo/geoip/cn.srs",
-        "download_detour": "direct-out"
+        "http_client": "direct-client"
       },
       {
         "tag": "geosite-cn",
         "type": "remote",
         "format": "binary",
         "url": "https://testingcf.jsdelivr.net/gh/QuincySx/dotfiles@metadata/sing/rules/Bak-ChinaMax_Domain.srs",
-        "download_detour": "direct-out"
+        "http_client": "direct-client"
       },
       {
         "tag": "geosite-lite-cn",
         "type": "remote",
         "format": "binary",
         "url": "https://testingcf.jsdelivr.net/gh/QuincySx/dotfiles@metadata/sing/rules/Bak-GeositeCN_Domain.srs",
-        "download_detour": "direct-out"
+        "http_client": "direct-client"
       },
       {
         "tag": "proxy-domain-cdn",
         "type": "remote",
         "format": "binary",
         "url": "https://testingcf.jsdelivr.net/gh/yyhhyyyyyy/sing-box-ruleset@main/domainset/cdn.srs",
-        "download_detour": "direct-out"
+        "http_client": "direct-client"
       },
       {
         "tag": "proxy-ip-cdn",
         "type": "remote",
         "format": "binary",
         "url": "https://testingcf.jsdelivr.net/gh/yyhhyyyyyy/sing-box-ruleset@main/non_ip/cdn.srs",
-        "download_detour": "direct-out"
+        "http_client": "direct-client"
       }
     ],
     "default_http_client": "direct-client"
@@ -1178,7 +1178,7 @@
       "dashboard": {
         "enabled": true,
         "path": "ui",
-        "http_client": "direct-client",
+        "http_client": "dashboard-client",
         "download_url": "https://edgeone.gh-proxy.com/github.com/SagerNet/sing-box-dashboard/archive/refs/heads/gh-pages.zip",
         "update_interval": "1d"
       }
@@ -1187,6 +1187,13 @@
   "http_clients": [
     {
       "tag": "direct-client",
+      "domain_resolver": {
+        "server": "resolverDns",
+        "strategy": "ipv4_only"
+      }
+    },
+    {
+      "tag": "dashboard-client",
       "domain_resolver": {
         "server": "resolverDns",
         "strategy": "ipv4_only"
