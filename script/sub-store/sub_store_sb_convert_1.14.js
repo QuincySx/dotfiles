@@ -299,18 +299,7 @@ const BUILTIN_PROFILES = {
   },
 };
 
-const profileAliasMap = {
-  mac: "mac",
-  router: "router",
-  "router-bypass": "router-bypass",
-  router_bypass: "router-bypass",
-  "router-旁路": "router-bypass",
-  router_旁路: "router-bypass",
-  "旁路": "router-bypass",
-  "router-pbr": "router_pbr",
-  router_pbr: "router_pbr",
-  mobile: "mobile",
-};
+
 
 const requestedProfileKey = (
   args.device ||
@@ -325,8 +314,7 @@ const requestedProfileKey = (
 
 let activeProfile = {};
 if (requestedProfileKey) {
-  const normalizedKey = profileAliasMap[requestedProfileKey] || requestedProfileKey;
-  activeProfile = BUILTIN_PROFILES[normalizedKey] || {};
+  activeProfile = BUILTIN_PROFILES[requestedProfileKey] || {};
 }
 
 // 3. 生成节点产物 (以仓库名作为 XOR 密钥混淆解析 target platform)

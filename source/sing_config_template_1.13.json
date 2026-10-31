@@ -94,7 +94,8 @@
           "apple-cn-cdn",
           "microsoft-cn-cdn",
           "ac-china",
-          "ac-custom-direct"
+          "ac-custom-direct",
+          "ac-game-download"
         ],
         "server": "localDns",
         "strategy": "prefer_ipv6"
@@ -816,7 +817,13 @@
       },
       {
         "rule_set": [
-          "ac-game-download",
+          "ac-game-download"
+        ],
+        "action": "bypass",
+        "outbound": "direct-out"
+      },
+      {
+        "rule_set": [
           "ac-steam-cn",
           "geosite-games-cn"
         ],
