@@ -67,8 +67,7 @@
         "rule_set": [
           "ac-custom-direct"
         ],
-        "server": "localDns",
-        "strategy": "prefer_ipv6"
+        "server": "localDns"
       },
       {
         "action": "route",
@@ -76,8 +75,7 @@
           "ac-openai",
           "geosite-openai"
         ],
-        "server": "proxyDns",
-        "strategy": "ipv4_only"
+        "server": "proxyDns"
       },
       {
         "action": "route",
@@ -90,8 +88,7 @@
           "ac-custom-direct",
           "ac-game-download"
         ],
-        "server": "localDns",
-        "strategy": "prefer_ipv6"
+        "server": "localDns"
       },
       {
         "action": "route",
@@ -100,16 +97,14 @@
           "proxy-domain-cdn",
           "ac-cdn-proxy"
         ],
-        "server": "proxyDns",
-        "strategy": "ipv4_only"
+        "server": "proxyDns"
       },
       {
         "action": "route",
         "rule_set": [
           "geosite-cn"
         ],
-        "server": "localDns",
-        "strategy": "prefer_ipv6"
+        "server": "localDns"
       },
       {
         "rule_set": "geosite-geolocation-!cn",
@@ -121,8 +116,7 @@
         "rule_set": "geoip-cn",
         "match_response": true,
         "action": "route",
-        "server": "localDns",
-        "strategy": "ipv4_only"
+        "server": "localDns"
       }
     ],
     "strategy": "prefer_ipv4",
