@@ -50,6 +50,9 @@ DOMAIN-SUFFIX,apis.google.com
 DOMAIN-SUFFIX,openrouter.ai
 DOMAIN-SUFFIX,x.ai
 
+# OpenCode Go
+DOMAIN-SUFFIX,opencode.ai
+
 # New Bing
 DOMAIN-SUFFIX,bing.com
 DOMAIN-SUFFIX,outlook.com
