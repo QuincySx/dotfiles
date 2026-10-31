@@ -510,7 +510,16 @@ const compatible_outbound = {
 
 let compatible = false;
 config.outbounds = config.outbounds || [];
-config.outbounds.push(...proxies);
+if (proxies.length > 0) {
+  config.outbounds.push(...proxies);
+} else {
+  // 容灾保底：若未传入 name 或未拉取到 proxies，但模板/切片中已存在节点，提取作为代理池供分组展开
+  const nonProxyTypes = new Set(["selector", "urltest", "direct", "block", "dns"]);
+  const existingProxies = config.outbounds.filter((o) => o && o.tag && !nonProxyTypes.has(o.type));
+  if (existingProxies.length > 0) {
+    proxies = existingProxies;
+  }
+}
 
 // 5. 处理 TUN 入站配置 (网卡名称、auto_route、auto_redirect、strict_route、exclude_uid、CIDR 排除)
 // 路由排除地址解析
@@ -654,6 +663,21 @@ if (Array.isArray(config.inbounds)) {
           ? [...new Set([...inbound.exclude_uid, ...extraExcludeUids])]
           : extraExcludeUids;
       }
+
+      // 规则集排除 (route_exclude_address_set)
+      if (
+        activeProfile.route_exclude_address_set &&
+        Array.isArray(activeProfile.route_exclude_address_set)
+      ) {
+        inbound.route_exclude_address_set = [
+          ...new Set([
+            ...(Array.isArray(inbound.route_exclude_address_set)
+              ? inbound.route_exclude_address_set
+              : []),
+            ...activeProfile.route_exclude_address_set,
+          ]),
+        ];
+      }
     }
   });
 }
@@ -707,6 +731,26 @@ if (effectiveExternalUi) {
       apiSvc.dashboard.directory = effectiveExternalUi;
     }
   }
+}
+
+// 规范化 1.14 顶层 services.api 格式（确保 listen 与 listen_port 拆分为独立合法字段）
+if (Array.isArray(config.services)) {
+  config.services.forEach((svc) => {
+    if (svc && svc.type === "api") {
+      if (typeof svc.listen === "string" && svc.listen.includes(":")) {
+        const parts = svc.listen.split(":");
+        svc.listen = parts[0] || "0.0.0.0";
+        if (parts[1] && !svc.listen_port) {
+          svc.listen_port = parseInt(parts[1], 10);
+        }
+      }
+      if (typeof svc.listen_port === "string") {
+        svc.listen_port = parseInt(svc.listen_port, 10);
+      }
+      if (!svc.listen) svc.listen = "0.0.0.0";
+      if (!svc.listen_port) svc.listen_port = 9090;
+    }
+  });
 }
 
 // 6. 处理自定义直连域名 (bypassDomains / directDomains)
@@ -922,6 +966,61 @@ function transpile114To113(cfg) {
 const targetVersion = (args.v || args.version || "1.13").toString().trim();
 if (targetVersion === "1.13" || targetVersion === "1.13.0") {
   config = transpile114To113(config);
+} else {
+  // 1.14 规范化与严格兼容清洗 (消除任何历史遗留导致 1.14 启动 FATAL 的字段)
+  // 1. 清理 dns.rules 内的所有 strategy（1.14 中已废弃并在 1.16 移除，配置中存在会导致直接崩溃）
+  if (config.dns && Array.isArray(config.dns.rules)) {
+    config.dns.rules.forEach((rule) => {
+      if (rule && rule.strategy !== undefined) {
+        delete rule.strategy;
+      }
+    });
+  }
+
+  // 2. 缓存配置清洗: store_rdrc -> store_dns
+  if (config.experimental?.cache_file) {
+    if (config.experimental.cache_file.store_rdrc !== undefined) {
+      if (config.experimental.cache_file.store_dns === undefined) {
+        config.experimental.cache_file.store_dns = config.experimental.cache_file.store_rdrc;
+      }
+      delete config.experimental.cache_file.store_rdrc;
+    }
+  }
+
+  // 3. 若模板中仍残留旧版 experimental.clash_api 且缺少 services，自动迁移到 1.14 services 结构
+  if (
+    config.experimental?.clash_api &&
+    (!Array.isArray(config.services) || config.services.length === 0)
+  ) {
+    const clashApi = config.experimental.clash_api;
+    let listen = "0.0.0.0";
+    let listen_port = 9090;
+    if (clashApi.external_controller && clashApi.external_controller.includes(":")) {
+      const parts = clashApi.external_controller.split(":");
+      listen = parts[0] || "0.0.0.0";
+      if (parts[1]) listen_port = parseInt(parts[1], 10);
+    }
+    config.services = [
+      {
+        type: "api",
+        listen,
+        listen_port,
+        secret: clashApi.secret || "123456",
+        access_control_allow_origin: ["*"],
+        dashboard: {
+          enabled: true,
+          download_url:
+            clashApi.external_ui_download_url ||
+            "https://edgeone.gh-proxy.com/github.com/SagerNet/sing-box-dashboard/archive/refs/heads/gh-pages.zip",
+          update_interval: "1d",
+          ...(effectiveExternalUi || clashApi.external_ui
+            ? { directory: effectiveExternalUi || clashApi.external_ui }
+            : {}),
+        },
+      },
+    ];
+    delete config.experimental.clash_api;
+  }
 }
 
 $content = JSON.stringify(config, null, 2);
