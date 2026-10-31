@@ -266,19 +266,19 @@ const BUILTIN_PROFILES = {
       "192.168.0.0/16",
     ],
   },
-  "router-momo": {
-    interface_name: "tun0",
+  "router-bypass": {
+    interface_name: "momo",
     auto_route: true,
     auto_redirect: true,
-    strict_route: false,
+    strict_route: true,
     exclude_uid: [1000],
     route_exclude_address: [
-      "10.0.0.0/8",
-      "172.16.0.0/12",
-      "192.168.0.0/16",
+      "5.5.5.5/32",
+      "10.10.1.20/32",
     ],
-    cache_path: "/etc/momo/run/cache.db",
-    external_ui: "/etc/momo/run/ui",
+    route_exclude_address_set: [
+      "geoip-cn",
+    ],
   },
   router_pbr: {
     interface_name: "tun0",
@@ -302,7 +302,12 @@ const BUILTIN_PROFILES = {
 const profileAliasMap = {
   mac: "mac",
   router: "router",
-  "router-momo": "router-momo",
+  "router-bypass": "router-bypass",
+  router_bypass: "router-bypass",
+  "router-旁路": "router-bypass",
+  router_旁路: "router-bypass",
+  "旁路": "router-bypass",
+  "router-pbr": "router_pbr",
   router_pbr: "router_pbr",
   mobile: "mobile",
 };
@@ -665,21 +670,53 @@ if (Array.isArray(config.inbounds)) {
   });
 }
 
-// 5.1 针对 momo 等特殊设备预设覆盖 cache.db 与 WebUI 路径
-if (activeProfile.cache_path) {
+// 5.1 独立存储路径参数解析 (storagePath / storage / storePath / storageDir)
+const rawStoragePath =
+  args.storagePath ||
+  args.storage_path ||
+  args.storageDir ||
+  args.storage_dir ||
+  args.storePath ||
+  args.storage ||
+  customBundle.storagePath ||
+  customBundle.storage;
+
+let effectiveCachePath =
+  args.cachePath ||
+  args.cache_path ||
+  customBundle.cachePath ||
+  activeProfile.cache_path;
+
+let effectiveExternalUi =
+  args.externalUi ||
+  args.external_ui ||
+  customBundle.externalUi ||
+  activeProfile.external_ui;
+
+if (rawStoragePath) {
+  let baseDir = String(rawStoragePath).trim();
+  if (baseDir.toLowerCase() === "momo" || baseDir.toLowerCase() === "true") {
+    baseDir = "/etc/momo/run";
+  }
+  baseDir = baseDir.replace(/\/+$/, "");
+  effectiveCachePath = effectiveCachePath || (baseDir + "/cache.db");
+  effectiveExternalUi = effectiveExternalUi || (baseDir + "/ui");
+}
+
+if (effectiveCachePath) {
   config.experimental = config.experimental || {};
   config.experimental.cache_file = config.experimental.cache_file || {};
-  config.experimental.cache_file.path = activeProfile.cache_path;
+  config.experimental.cache_file.path = effectiveCachePath;
 }
-if (activeProfile.external_ui) {
+if (effectiveExternalUi) {
   if (config.experimental?.clash_api) {
-    config.experimental.clash_api.external_ui = activeProfile.external_ui;
+    config.experimental.clash_api.external_ui = effectiveExternalUi;
   }
   if (Array.isArray(config.services)) {
     const apiSvc = config.services.find((s) => s.type === "api");
     if (apiSvc) {
       apiSvc.dashboard = apiSvc.dashboard || {};
-      apiSvc.dashboard.directory = activeProfile.external_ui;
+      apiSvc.dashboard.directory = effectiveExternalUi;
     }
   }
 }
@@ -803,6 +840,7 @@ function transpile114To113(cfg) {
       cfg.experimental.clash_api = {
         external_controller: apiService.listen || "0.0.0.0:9090",
         external_ui:
+          (typeof effectiveExternalUi !== "undefined" && effectiveExternalUi) ||
           activeProfile.external_ui ||
           apiService.dashboard?.directory ||
           "ui",
