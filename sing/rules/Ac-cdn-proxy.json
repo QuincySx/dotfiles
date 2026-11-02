@@ -15,7 +15,6 @@
         "hf.co",
         "huggingface.co",
         "lmstudio.ai",
-        "opencode.ai",
         "anythingllm.com",
         "gvt1.com",
         "googlezip.net",
@@ -25,7 +24,10 @@
         "-cdn.coze.com"
       ],
       "domain": [
-        "download.live.ledger.com"
+        "download.live.ledger.com",
+        "cdn-fastly.obsproject.com",
+        "xmr-node.cakewallet.com",
+        "zcash-mainnet.chainsafe.dev"
       ]
     }
   ],
