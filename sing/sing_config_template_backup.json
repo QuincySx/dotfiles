@@ -85,6 +85,7 @@
           "ac-cdn-proxy",
           "geosite-geolocation-!cn",
           "ac-custom-proxy",
+          "geosite-youtube",
           "geosite-netflix",
           "geosite-disney",
           "geosite-spotify",
@@ -213,16 +214,16 @@
       "tag": "🚀 手选节点",
       "type": "selector",
       "outbounds": [
+        "{self}",
+        "🏴☠️ 自建节点",
         "🇭🇰 香港自动节点",
         "🇭🇰 香港节点",
         "🇨🇳 台湾节点",
         "🇸🇬 狮城节点",
         "🇯🇵 日本节点",
         "🇺🇲 美国节点",
-        "🏴☠️ 自建节点",
         "🇺🇳 其他节点",
         "🎮 游戏节点",
-        "🎥 奈飞节点",
         "{all}",
         "direct-out"
       ],
@@ -240,10 +241,11 @@
       "tag": "🤖 GPT分流",
       "type": "selector",
       "outbounds": [
+        "{self}",
+        "🏴☠️ 自建节点",
         "🚀 手选节点",
         "🇭🇰 香港自动节点",
         "🇭🇰 香港节点",
-        "🏴☠️ 自建节点",
         "🇨🇳 台湾节点",
         "🇸🇬 狮城节点",
         "🇯🇵 日本节点",
@@ -257,10 +259,11 @@
       "tag": "🤖 Claude分流",
       "type": "selector",
       "outbounds": [
+        "{self}",
+        "🏴☠️ 自建节点",
         "🚀 手选节点",
         "🇭🇰 香港自动节点",
         "🇭🇰 香港节点",
-        "🏴☠️ 自建节点",
         "🇨🇳 台湾节点",
         "🇸🇬 狮城节点",
         "🇯🇵 日本节点",
@@ -274,24 +277,28 @@
       "tag": "🚀 CDN 分流",
       "type": "selector",
       "outbounds": [
+        "{self}",
+        "🏴☠️ 自建节点",
         "🇺🇳 低倍节点",
         "🚀 手选节点",
         "🇭🇰 香港自动节点",
         "🇭🇰 香港节点",
-        "🏴☠️ 自建节点",
         "🇨🇳 台湾节点",
         "🇸🇬 狮城节点",
         "🇯🇵 日本节点",
         "🇺🇲 美国节点",
         "🇺🇳 其他节点",
         "direct-out"
-      ]
+      ],
+      "default": "🇺🇳 低倍节点"
     },
     {
-      "tag": "🎥 奈飞、Disney、Spotify 分流",
+      "tag": "🎥 流媒体分流",
       "type": "selector",
       "outbounds": [
-        "🎥 奈飞节点",
+        "{self}",
+        "🏴☠️ 自建节点",
+        "{all}",
         "🚀 手选节点",
         "🇭🇰 香港自动节点",
         "🇭🇰 香港节点",
@@ -301,6 +308,21 @@
         "🇺🇲 美国节点",
         "🇺🇳 其他节点",
         "direct-out"
+      ],
+      "default": "🚀 手选节点",
+      "filter": [
+        {
+          "action": "include",
+          "keywords": [
+            "🇯🇵|(?:^|[^A-Za-z])(?:JP|JPN)(?=$|[^A-Za-z])|日本|Japan|日(?!用)|🇭🇰|(?:^|[^A-Za-z])(?:HK|HKG)(?=$|[^A-Za-z])|香港|港|HongKong|Hong Kong|🇸🇬|(?:^|[^A-Za-z])(?:SG|SGP)(?=$|[^A-Za-z])|新加坡|狮|Singapore"
+          ]
+        },
+        {
+          "action": "exclude",
+          "keywords": [
+            "网站|地址|剩余|过期|时间|有效|Traffic|Expire"
+          ]
+        }
       ]
     },
     {
@@ -441,6 +463,8 @@
       "tag": "🐟 漏网分流",
       "type": "selector",
       "outbounds": [
+        "{self}",
+        "🏴☠️ 自建节点",
         "🚀 手选节点",
         "🇭🇰 香港自动节点",
         "🇭🇰 香港节点",
@@ -451,7 +475,8 @@
         "🇺🇲 美国节点",
         "🇺🇳 其他节点",
         "direct-out"
-      ]
+      ],
+      "default": "🚀 手选节点"
     },
     {
       "tag": "GLOBAL",
@@ -478,7 +503,7 @@
         {
           "action": "include",
           "keywords": [
-            "🇭🇰|HK|hk|香港|港|HongKong|Hong Kong"
+            "🇭🇰|(?:^|[^A-Za-z])(?:HK|HKG)(?=$|[^A-Za-z])|香港|港|HongKong|Hong Kong"
           ]
         },
         {
@@ -503,7 +528,7 @@
         {
           "action": "include",
           "keywords": [
-            "🇭🇰|HK|hk|香港|港|HongKong|Hong Kong"
+            "🇭🇰|(?:^|[^A-Za-z])(?:HK|HKG)(?=$|[^A-Za-z])|香港|港|HongKong|Hong Kong"
           ]
         },
         {
@@ -525,7 +550,7 @@
         {
           "action": "include",
           "keywords": [
-            "🇯🇵|JP|jp|日本|日|Japan"
+            "🇯🇵|(?:^|[^A-Za-z])(?:JP|JPN)(?=$|[^A-Za-z])|日本|日|Japan"
           ]
         },
         {
@@ -547,7 +572,7 @@
         {
           "action": "include",
           "keywords": [
-            "🇺🇸|US|us|美国|美|United States|la|LA|sj|SJ"
+            "🇺🇸|(?:^|[^A-Za-z])(?:US|USA)(?=$|[^A-Za-z])|美国|美|United States|(?:^|[^A-Za-z])LA(?=$|[^A-Za-z])|(?:^|[^A-Za-z])SJ(?=$|[^A-Za-z])"
           ]
         },
         {
@@ -562,23 +587,9 @@
       "tag": "🏴☠️ 自建节点",
       "type": "selector",
       "outbounds": [
-        "{all}",
-        "self-la02-anyreality-vmiss",
+        "{self}",
+        "block-out",
         "direct-out"
-      ],
-      "filter": [
-        {
-          "action": "include",
-          "keywords": [
-            "self"
-          ]
-        },
-        {
-          "action": "exclude",
-          "keywords": [
-            "遊戲|游戏|game|Game|GAME"
-          ]
-        }
       ]
     },
     {
@@ -592,7 +603,7 @@
         {
           "action": "include",
           "keywords": [
-            "🇹🇼|TW|tw|台湾|臺灣|台|Taiwan"
+            "🇹🇼|(?:^|[^A-Za-z])(?:TW|TWN)(?=$|[^A-Za-z])|台湾|臺灣|台|Taiwan"
           ]
         },
         {
@@ -614,7 +625,7 @@
         {
           "action": "include",
           "keywords": [
-            "🇸🇬|SG|sg|新加坡|狮|Singapore"
+            "🇸🇬|(?:^|[^A-Za-z])(?:SG|SGP)(?=$|[^A-Za-z])|新加坡|狮|Singapore"
           ]
         },
         {
@@ -636,7 +647,7 @@
         {
           "action": "exclude",
           "keywords": [
-            "🇭🇰|HK|hk|香港|香|Hong Kong|🇹🇼|TW|tw|台湾|台|Taiwan|🇸🇬|SG|sg|新加坡|狮|Singapore|🇯🇵|JP|jp|日本|日|Japan|🇺🇸|US|us|美国|美"
+            "🇭🇰|(?:^|[^A-Za-z])(?:HK|HKG)(?=$|[^A-Za-z])|香港|香|Hong Kong|🇹🇼|(?:^|[^A-Za-z])(?:TW|TWN)(?=$|[^A-Za-z])|台湾|台|Taiwan|🇸🇬|(?:^|[^A-Za-z])(?:SG|SGP)(?=$|[^A-Za-z])|新加坡|狮|Singapore|🇯🇵|(?:^|[^A-Za-z])(?:JP|JPN)(?=$|[^A-Za-z])|日本|日|Japan|🇺🇸|(?:^|[^A-Za-z])(?:US|USA)(?=$|[^A-Za-z])|美国|美"
           ]
         },
         {
@@ -670,22 +681,6 @@
       ]
     },
     {
-      "tag": "🎥 奈飞节点",
-      "type": "selector",
-      "outbounds": [
-        "{all}",
-        "direct-out"
-      ],
-      "filter": [
-        {
-          "action": "exclude",
-          "keywords": [
-            "网站|地址|剩余|过期|时间|有效|Traffic|Expire"
-          ]
-        }
-      ]
-    },
-    {
       "tag": "🇺🇳 低倍节点",
       "type": "selector",
       "outbounds": [
@@ -705,7 +700,7 @@
         {
           "action": "include",
           "keywords": [
-            "日用|实验|🇭🇰|HK|hk|香港|香|Hong Kong|🇸🇬|SG|sg|新加坡|狮|Singapore|self"
+            "日用|实验|🇭🇰|(?:^|[^A-Za-z])(?:HK|HKG)(?=$|[^A-Za-z])|香港|香|Hong Kong|🇸🇬|(?:^|[^A-Za-z])(?:SG|SGP)(?=$|[^A-Za-z])|新加坡|狮|Singapore|self"
           ]
         },
         {
@@ -752,6 +747,7 @@
               "ac-cdn-proxy",
               "geosite-geolocation-!cn",
               "ac-custom-proxy",
+              "geosite-youtube",
               "geosite-netflix",
               "geosite-disney",
               "geosite-spotify",
@@ -836,6 +832,16 @@
         "outbound": "🤖 GPT分流"
       },
       {
+        "rule_set": [
+          "geosite-youtube",
+          "geoip-netflix",
+          "geosite-netflix",
+          "geosite-disney",
+          "geosite-spotify"
+        ],
+        "outbound": "🎥 流媒体分流"
+      },
+      {
         "action": "bypass",
         "outbound": "direct-out",
         "rule_set": "geoip-cn"
@@ -904,15 +910,6 @@
       },
       {
         "rule_set": [
-          "geoip-netflix",
-          "geosite-netflix",
-          "geosite-disney",
-          "geosite-spotify"
-        ],
-        "outbound": "🎥 奈飞、Disney、Spotify 分流"
-      },
-      {
-        "rule_set": [
           "ac-exchange",
           "geosite-category-cryptocurrency"
         ],
@@ -927,12 +924,6 @@
           "geosite-apple-proxy"
         ],
         "outbound": "🍎 代理分流"
-      },
-      {
-        "rule_set": [
-          "geosite-github"
-        ],
-        "outbound": "🚀 手选节点"
       },
       {
         "rule_set": "geosite-microsoft",
@@ -1122,6 +1113,13 @@
         "type": "remote",
         "format": "binary",
         "url": "https://testingcf.jsdelivr.net/gh/QuincySx/dotfiles@metadata/sing/rules/geoip/netflix.srs",
+        "http_client": "direct-client"
+      },
+      {
+        "tag": "geosite-youtube",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://testingcf.jsdelivr.net/gh/QuincySx/dotfiles@metadata/sing/rules/geosite/youtube.srs",
         "http_client": "direct-client"
       },
       {

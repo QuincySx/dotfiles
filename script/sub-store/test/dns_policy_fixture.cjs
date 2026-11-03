@@ -13,7 +13,8 @@ const { promisify } = require('node:util');
 const run = promisify(execFile);
 const closeServer = (server) => new Promise((resolve) => server.close(resolve));
 const hubspotDomains = ['hs-analytics.net', 'track.hs-analytics.net', 'hs-scripts.com', 'js.hs-scripts.com', 'hubspot.com', 'app.hubspot.com'];
-const foreignDomains = ['foreign-explicit.test', 'foreign-cdn.test', 'claude.ai', 'clau.de', 'foreign-fallback.test', 'direct-first.test', ...hubspotDomains];
+const streamDomains = ['youtube.com', 'rr1.googlevideo.com', 'youtubei.googleapis.com', 'netflix.test', 'disney.test', 'spotify.test'];
+const foreignDomains = ['foreign-explicit.test', 'foreign-cdn.test', 'claude.ai', 'clau.de', 'foreign-fallback.test', 'direct-first.test', ...hubspotDomains, ...streamDomains];
 
 async function listen(server, options) {
   await new Promise((resolve, reject) => {
@@ -83,11 +84,15 @@ function configureDns(config, local, remote) {
     'geosite-lite-cn': ['domestic.test', 'domestic-v4only.test', 'domestic-v6only.test', 'claude.ai'],
     // Force the user-approved early routes to win over an overlapping ad rule.
     'geosite-category-ads-all': ['claude.ai', ...hubspotDomains],
-    'proxy-domain-cdn': ['foreign-cdn.test'],
+    'proxy-domain-cdn': ['foreign-cdn.test', ...streamDomains],
+    'geosite-netflix': ['netflix.test'],
+    'geosite-disney': ['disney.test'],
+    'geosite-spotify': ['spotify.test'],
     'geosite-geolocation-!cn': ['foreign-fallback.test', 'foreign-v6only.test'],
   };
-  config.route.rule_set = config.route.rule_set.map(({ tag }) => tag === 'ac-claude' ? {
-    type: 'local', tag, format: 'binary', path: path.resolve(__dirname, '../../../sing/rules/Ac-claude-proxy.srs'),
+  const binaries = { 'ac-claude': 'Ac-claude-proxy.srs', 'geosite-youtube': 'geosite/youtube.srs' };
+  config.route.rule_set = config.route.rule_set.map(({ tag }) => binaries[tag] ? {
+    type: 'local', tag, format: 'binary', path: path.resolve(__dirname, '../../../sing/rules', binaries[tag]),
   } : ({
     type: 'inline', tag,
     rules: tag === 'geoip-cn' ? [{ ip_cidr: ['203.0.113.0/24', '2001:db8:1::/48'] }] :
@@ -183,11 +188,13 @@ exports.checkConnections = async function checkConnections(t, binary, config) {
   await listen(v6, { host: '::1', port: webPort, ipv6Only: true });
   t.after(() => closeServer(v6));
   const targets = [];
+  const streamTargets = [];
   const proxy = http.createServer();
   proxy.on('connect', (request, client, head) => {
     const target = new URL(`http://${request.url}`);
     const host = target.hostname.replace(/^\[|\]$/g, '');
     targets.push(host);
+    if (request.headers['proxy-authorization']) streamTargets.push(host);
     // Never resolve fixture domains via the system or a real DNS service.
     if (!net.isIP(host)) { client.end('HTTP/1.1 502 Bad Gateway\r\n\r\n'); return; }
     const connection = net.createConnection({ host, port: Number(target.port) }, () => {
@@ -207,6 +214,12 @@ exports.checkConnections = async function checkConnections(t, binary, config) {
     if (outbound.type === 'urltest') return { type: 'selector', tag: outbound.tag, outbounds: outbound.outbounds };
     return outbound;
   });
+  // A distinct proxy identity makes generic CDN/Google interception observable.
+  config.outbounds.push({ type: 'http', tag: 'stream-fixture', server: '127.0.0.1', server_port: proxyPort,
+    username: 'stream-fixture', password: 'fixture-only' });
+  const media = config.outbounds.find((outbound) => outbound.tag === '🎥 流媒体分流');
+  media.outbounds = ['stream-fixture'];
+  media.default = 'stream-fixture';
   // Fixture addresses are loopback; remove only this bypass so proxy paths are exercised too.
   config.route.rules = config.route.rules.filter((rule) => !rule.ip_is_private);
   const reservation = net.createServer();
@@ -217,7 +230,11 @@ exports.checkConnections = async function checkConnections(t, binary, config) {
   const request = async (name) => (await run('curl', ['--silent', '--show-error', '--max-time', '4', '--noproxy', '',
     '--proxy', `socks5h://127.0.0.1:${port}`, `http://${name}:${webPort}/`], { timeout: 6000 })).stdout;
   for (const name of foreignDomains) {
+    const before = streamTargets.length;
     assert.equal(await request(name), 'IPv4', `${name}\n${logs()}`);
+    if (streamDomains.includes(name)) {
+      assert.equal(streamTargets.length, before + 1, `${name}: must use the shared streaming selector, ahead of CDN/Google rules`);
+    }
   }
   assert(targets.includes('127.0.0.1'), 'foreign proxy connections must receive a resolved IPv4 destination');
   for (const name of ['domestic.test', 'domestic-v4only.test', 'unknown.test', 'unknown-v4only.test']) {
@@ -231,7 +248,7 @@ exports.checkConnections = async function checkConnections(t, binary, config) {
   await assert.rejects(ipv6Request('foreign-explicit.test'), 'cached IPv6 with a known foreign HTTP host must be rejected');
   await assert.rejects(ipv6Request('foreign-fallback.test'), 'cached foreign IPv6 must not escape via the default outbound');
   await assert.rejects(ipv6Request('direct-first.test'), 'a custom-direct overlap must not bypass the foreign IPv6 restriction');
-  for (const name of ['claude.ai', ...hubspotDomains]) {
+  for (const name of ['claude.ai', ...hubspotDomains, 'youtube.com']) {
     await assert.rejects(ipv6Request(name), `${name}: early business routes must not bypass the foreign IPv6 restriction`);
   }
   for (const name of ['domestic.test', 'direct-local.test', 'unknown.test']) {
@@ -265,7 +282,7 @@ exports.checkClashApi = async function checkClashApi(t, binary, config) {
       external_ui: directory,
       secret: 'fixture-api-only',
     } },
-    outbounds: [{ type: 'direct', tag: 'direct-out' }],
+    outbounds: config.outbounds.filter((outbound) => ['direct-out', 'block-out', '🏴☠️ 自建节点'].includes(outbound.tag)),
     route: { final: 'direct-out' },
   });
   const request = (pathname) => new Promise((resolve, reject) => {
@@ -284,7 +301,9 @@ exports.checkClashApi = async function checkClashApi(t, binary, config) {
   assert.match(JSON.parse(version.body).version, /1\.14/);
   const proxies = await request('/proxies');
   assert.equal(proxies.status, 200);
-  assert(JSON.parse(proxies.body).proxies['direct-out']);
+  const proxyGroups = JSON.parse(proxies.body).proxies;
+  assert(proxyGroups['direct-out']);
+  assert.equal(proxyGroups['🏴☠️ 自建节点'].now, 'block-out', 'an empty self-hosted group must default to blocking');
   const ui = await request('/ui/');
   assert.equal(ui.status, 200);
   assert.match(ui.body, /fixture dashboard/);

@@ -23,6 +23,31 @@
 
 1.13 文件保留作历史参考，不再由活动脚本输出或降级适配。活动脚本拒绝 `v=1.13`。迁移前的原始行为应从 Git 固定提交读取：`599dbd2` 为首次分版，`2e9cadc` 为其父提交；不要仅根据当前文件名判断原始行为。
 
+### 脚本职责与个人参数
+
+日常用法是把模板文件和自建节点文件一起加入 Sub-Store 的输入，顺序不限。节点文件可以是节点数组，或包含 `outbounds` 的对象；不需要为这个文件再配置外链或本地 HTTP 地址。
+
+以当前 1.14 模板为唯一生成基准：相同模板和个人参数，保持原有生成结果。固定 DNS、国内外分类、IPv4 限制和业务分流由模板维护，脚本负责读取输入、装配节点、应用个人参数、展开模板选择组。不猜测主模板，不兼容或迁移 1.13 配置，不转换旧 API、面板或缓存字段。
+
+| 用途 | 常用参数 |
+| --- | --- |
+| 机场订阅 | `name`、`type`、`url` |
+| 自建节点 | 输入节点文件；也可显式使用 `selfSub` / `selfSubType` |
+| 可选自建来源 | `customNodes`（Base64，或 `none` / `false` 禁用）、`customNodesUrl`、`localFile` |
+| 设备预设 | `profile`：`mac`、`mobile`、`router`、`router-bypass`、`router_pbr` |
+| TUN 个性化 | `interfaceName`、`autoRoute`、`autoRedirect`、`strictRoute`、`excludeUid` |
+| 地址排除 | `routeExcludeAddress` 覆盖，`appendRouteExcludeAddress` 追加；IPv6 请显式传入 CIDR |
+| 存储与面板目录 | `storagePath`，或分别指定 `cachePath`、`externalUi` |
+| 私人直连域名 | `bypassDomains` |
+| DNS ECS | `clientSubnet` |
+| 打包个人设置 | `custom`：Base64 JSON |
+
+既有参数别名、优先级和清空/追加语义继续兼容。`localFile` 保留 Sub-Store 的 `read` / `getFile` 读取，以及原有 3000/3001 端口、127.0.0.1/localhost 的 HTTP 回退顺序。远程节点源保留 `$httpClient`、`ProxyUtils.http`、`fetch` 三种客户端路径。
+
+附加 DNS、入站、路由等切片仍可合并，保持原有顺序：DNS 切片置顶，业务路由切片排在地址族限制及 `resolve` 之后。API、面板和缓存沿用当前模板字段，脚本仅按路径参数设置缓存文件与 Clash 面板目录。
+
+DNS 切片置顶可能抢在模板国外过滤之前，是已确认的风险。本次撤回精简时夹带的切片优先级修改，后续作为独立行为修复处理。
+
 ### Momo 旁路由参数
 
 保留原订阅名称、订阅类型、自建节点等现有参数，使用：
@@ -37,6 +62,20 @@
 - `experimental.clash_api.external_ui = /etc/momo/run/ui`
 
 继续使用 `experimental.clash_api` 和 MetaCubeXD。脚本保留模板的 Clash API 配置，不再自动改成 `services[type=api]`。1.14 的新 API 不是使用 Clash API 的前提。
+
+### 流媒体与自建节点选择
+
+YouTube、奈飞、Disney、Spotify 共用 `🎥 流媒体分流`，在此处选一次节点，四类服务一起切换。流媒体路由位于通用 Google、CDN 规则之前，避免视频、接口等域名被这些通用规则分走。YouTube 使用仓库现有的 `sing/rules/geosite/youtube.srs`，并加入国外 IPv4 限制。
+
+流媒体组还直接列出名称匹配日本、香港、新加坡标记的所有节点，包含游戏节点，并排除流量/到期等信息条目。独立的 `🎥 奈飞节点` 组及其引用已移除，流媒体默认跟随 `🚀 手选节点`。自建节点仍全部保留，不受这三个地区的筛选限制。
+
+各地区英文缩写按字母边界匹配，支持 `HK01`、`SG-01` 等编号，以及 HKG/JPN/SGP/TWN/USA 标记；避免将 `USGame` 中的 `SG` 当作新加坡。旗帜、中文地区名等既有标记继续保留。
+
+手选、GPT、Claude、CDN、流媒体和漏网分组，都在列表前面直接列出每个自建节点，并保留 `🏴☠️ 自建节点` 子分组。模板用 `{self}` 表示这些位置，转换器根据实际加载的自建订阅或节点切片展开，不要求节点名称包含 `self`；同时兼容旧订阅中名称含 `self` 的节点。其他分组的原有默认出口保留。
+
+自建节点沿用已有加载方式，例如 `#name=机场订阅名&selfSub=自建订阅名`，或传入自建节点切片。自建组的末尾依次为 `block-out`、`direct-out`；未加载自建节点时，`{self}` 展开为空，没有历史选择覆盖时默认阻断，直连仍可手动选择。正常加载时默认第一个自建节点。
+
+GitHub 不再单独指定到手选节点，继续匹配微软服务等已有分流规则；CDN 分流保留。GitHub 的国外 IPv4 限制仍保留。
 
 ### Claude / HubSpot 提前路由
 
@@ -78,6 +117,8 @@
 ```sh
 node --test script/sub-store/test/sub_store_sb_convert.test.cjs
 ```
+
+测试保存了精简前的固定实现 `test/fixtures/sub_store_sb_convert.before_refactor.js`，对当前模板和个人参数执行差分验证，比较配置输出、参数优先级、节点来源、HTTP/本地读取、切片顺序、错误和日志。无模板兜底及旧 API / 缓存迁移明确排除在支持范围外，不再要求保持这些旧行为。基线有固定哈希校验，不能靠同步替换基线来让重构通过。
 
 附带真实核心检查（传入本机可执行文件）：
 

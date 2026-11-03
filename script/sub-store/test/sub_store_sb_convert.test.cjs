@@ -10,24 +10,13 @@ const root = path.resolve(__dirname, '../../..');
 const read = (file) => fs.readFileSync(path.join(root, file), 'utf8');
 const clone = (value) => JSON.parse(JSON.stringify(value));
 const template14 = JSON.parse(read('source/sing_config_template_1.14.json'));
-const template13 = JSON.parse(read('source/sing_config_template_1.13.json'));
 const scripts = ['sub_store_sb_convert.js', 'sub_store_sb_convert_1.14.js'];
 const proxy = {
   type: 'anytls', tag: 'TEST-Hong Kong', server: '127.0.0.1', server_port: 443,
   password: 'test-fixture-only', tls: { enabled: true, server_name: 'example.com' },
 };
 
-function apiServiceTemplate() {
-  const template = clone(template14);
-  delete template.experimental.clash_api;
-  template.services = [{
-    type: 'api', tag: 'api', listen: '127.0.0.1', listen_port: 9090,
-    dashboard: { path: 'ui' },
-  }];
-  return template;
-}
-
-async function convert({ template = template14, script = scripts[0], args = {}, files = [], proxies = [proxy], produceError } = {}) {
+async function convert({ template = template14, script = scripts[0], args = {}, files = [], proxies = [proxy], selfProxies, produceError, runtime = {} } = {}) {
   const calls = [];
   const context = vm.createContext({
     $arguments: { name: 'fixture', ...args },
@@ -35,12 +24,16 @@ async function convert({ template = template14, script = scripts[0], args = {}, 
     $files: files.map((file) => JSON.stringify(file)),
     ProxyUtils: { JSON5: JSON },
     Buffer,
+    setTimeout,
+    clearTimeout,
     console: { log() {} },
     produceArtifact: async (options) => {
       calls.push(options);
       if (produceError) throw new Error(produceError);
+      if (selfProxies && options.name === args.selfSub) return clone(selfProxies);
       return clone(proxies);
     },
+    ...runtime,
   });
   await new vm.Script(`(async () => {\n${read(`script/sub-store/${script}`)}\n})()`).runInContext(context, { timeout: 2000 });
   return { config: JSON.parse(context.$content), calls };
@@ -55,6 +48,7 @@ function assertReferences(config) {
     if (outbound.default) assert(outbound.outbounds.includes(outbound.default));
   }
   assert(!JSON.stringify(config).includes('{all}'));
+  assert(!JSON.stringify(config).includes('{self}'));
 }
 
 test('public template/script aliases stay synchronized', () => {
@@ -88,7 +82,7 @@ test('Claude and HubSpot business routes precede privacy, ads and mode rules', (
 });
 
 test('bootstrap uses IP-addressed direct DoH, without UDP/QUIC/domain recursion', () => {
-  for (const template of [template13, template14]) {
+  for (const template of [template14]) {
     for (const tag of ['resolverDns', 'localDns']) {
       const server = template.dns.servers.find((item) => item.tag === tag);
       assert.equal(server.type, 'https');
@@ -124,36 +118,6 @@ for (const script of scripts) {
   });
 }
 
-for (const listen of ['::1', '::', '2001:db8::1']) {
-  test(`IPv6 API listener ${listen} is not widened or truncated`, async () => {
-    const template = apiServiceTemplate();
-    template.services[0].listen = listen;
-    const { config } = await convert({ template });
-    assert.equal(config.services[0].listen, listen);
-    assert.equal(config.services[0].listen_port, 9090);
-  });
-}
-
-for (const [input, expectedHost, expectedPort] of [['127.0.0.1:12345', '127.0.0.1', 12345], ['[::1]:12345', '::1', 12345]]) {
-  test(`legacy API host:port ${input} is split safely`, async () => {
-    const template = apiServiceTemplate();
-    template.services[0].listen = input;
-    delete template.services[0].listen_port;
-    const { config } = await convert({ template });
-    assert.equal(config.services[0].listen, expectedHost);
-    assert.equal(config.services[0].listen_port, expectedPort);
-  });
-}
-
-test('legacy dashboard.directory is migrated to path', async () => {
-  const template = apiServiceTemplate();
-  delete template.services[0].dashboard.path;
-  template.services[0].dashboard.directory = '/tmp/test-ui';
-  const { config } = await convert({ template });
-  assert.equal(config.services[0].dashboard.path, '/tmp/test-ui');
-  assert(!('directory' in config.services[0].dashboard));
-});
-
 for (const version of ['1.14', '1.14.0', '1.14.4', 'v1.14.4', '1.14.4-beta.1']) {
   test(`${version} generates the 1.14 configuration`, async () => {
     const { config } = await convert({ args: { v: version, storagePath: 'momo' } });
@@ -170,13 +134,6 @@ for (const version of ['1.13', '1.13.12', '1.15']) {
     await assert.rejects(convert({ args: { v: version } }), /仅支持 1.14/);
   });
 }
-
-test('legacy DNS input is preserved when generating 1.14', async () => {
-  const { config } = await convert({ template: template13, args: { v: '1.14.4' } });
-  assert(config.dns.rules.some((rule) => rule.strategy === 'ipv4_only'));
-  assert.deepEqual(config.experimental.clash_api, template13.experimental.clash_api);
-  assert(!config.services);
-});
 
 test('mixed legacy strategy and modern DNS matching is rejected with an actionable message', async () => {
   const template = clone(template14);
@@ -199,9 +156,134 @@ test('local-only mode does not call subscription generation', async () => {
   assertReferences(config);
 });
 
+test('a self-hosted node file can appear before the template file', async () => {
+  const custom = { ...proxy, tag: '东京主力' };
+  const { config } = await convert({ template: [custom], files: [template14] });
+  assert(config.outbounds.some((outbound) => outbound.tag === custom.tag));
+  assert(config.outbounds.find((outbound) => outbound.tag === '🤖 GPT分流').outbounds.includes(custom.tag));
+  assertReferences(config);
+});
+
+test('node files alone fail clearly instead of being treated as a template', async () => {
+  await assert.rejects(convert({ template: [proxy] }), /未找到当前 1.14 配置模板/);
+});
+
+test('an arbitrary config object is not guessed to be the current template', async () => {
+  const template = clone(template14);
+  delete template.inbounds;
+  await assert.rejects(convert({ template }), /未找到当前 1.14 配置模板/);
+});
+
+test('an explicit self-hosted subscription retains source identity without requiring self in node names', async () => {
+  const custom = { ...proxy, tag: '东京主力' };
+  const { config, calls } = await convert({ args: { selfSub: 'personal-fixture' }, selfProxies: [custom] });
+  assert.deepEqual(calls.map((call) => call.name), ['fixture', 'personal-fixture']);
+  assert.deepEqual(config.outbounds.find((outbound) => outbound.tag === '🏴☠️ 自建节点').outbounds,
+    [custom.tag, 'block-out', 'direct-out']);
+});
+
+test('named node files use the provided Sub-Store reader without probing HTTP ports', async () => {
+  const custom = { ...proxy, tag: '本地自建' };
+  const { config } = await convert({ args: { localFile: 'personal-fixture' }, runtime: {
+    $substore: { read: (name) => name === 'personal-fixture' ? JSON.stringify([custom]) : null },
+    ProxyUtils: { JSON5: JSON, http: { get() { throw new Error('must not probe local HTTP ports'); } } },
+  } });
+  assert(config.outbounds.find((outbound) => outbound.tag === '🏴☠️ 自建节点').outbounds.includes(custom.tag));
+});
+
+test('explicit remote and Base64 node sources remain available', async () => {
+  const remote = { ...proxy, tag: '外链自建' };
+  const encoded = { ...proxy, tag: '编码自建' };
+  const calls = [];
+  const { config } = await convert({ args: {
+    customNodesUrl: 'https://example.invalid/nodes',
+    customNodes: Buffer.from(JSON.stringify([encoded])).toString('base64'),
+  }, runtime: { ProxyUtils: { JSON5: JSON, http: { get: async (url) => {
+    calls.push(url);
+    return { status: 200, body: JSON.stringify([remote]) };
+  } } } } });
+  assert.deepEqual(calls, ['https://example.invalid/nodes']);
+  for (const node of [remote, encoded]) assert(config.outbounds.some((outbound) => outbound.tag === node.tag));
+  assertReferences(config);
+});
+
+test('personal route exclusions and TUN overrides retain their existing behavior', async () => {
+  const { config } = await convert({ args: {
+    appendRouteExcludeAddress: ['10.0.1.1', '2001:db8::1/128'], interfaceName: 'personal-tun', autoRoute: 'false',
+  } });
+  const tun = config.inbounds[0];
+  assert.deepEqual(tun.route_exclude_address, ['5.5.5.5/32', '10.10.1.20/32', '10.0.1.1/32', '2001:db8::1/128']);
+  assert.equal(tun.interface_name, 'personal-tun');
+  assert.equal(tun.auto_route, false);
+});
+
 test('customNodes=none disables the custom-node slice pool', async () => {
   const { config } = await convert({ args: { customNodes: 'none' }, files: [[{ ...proxy, tag: 'self-disabled' }]] });
   assert(!config.outbounds.some((outbound) => outbound.tag === 'self-disabled'));
+  assert.deepEqual(config.outbounds.find((outbound) => outbound.tag === '🏴☠️ 自建节点').outbounds,
+    ['block-out', 'direct-out']);
+  assertReferences(config);
+});
+
+for (const script of scripts) {
+  test(`${script}: self-hosted nodes and their group are directly available in common selectors`, async () => {
+    const custom = [{ ...proxy, tag: '东京主力' }, { ...proxy, tag: '洛杉矶主力' }];
+    const legacy = { ...proxy, tag: 'self-legacy' };
+    const { config } = await convert({ script, proxies: [proxy, legacy], files: [[...custom, custom[0]]] });
+    const selfTags = [legacy.tag, ...custom.map((node) => node.tag)];
+    for (const tag of ['🚀 手选节点', '🤖 GPT分流', '🤖 Claude分流', '🚀 CDN 分流', '🎥 流媒体分流', '🐟 漏网分流']) {
+      const group = config.outbounds.find((outbound) => outbound.tag === tag);
+      assert.deepEqual(group.outbounds.slice(0, selfTags.length + 1), [...selfTags, '🏴☠️ 自建节点']);
+      assert.equal(new Set(group.outbounds).size, group.outbounds.length);
+      assert.equal(group.default, template14.outbounds.find((outbound) => outbound.tag === tag).default);
+    }
+    const selfGroup = config.outbounds.find((outbound) => outbound.tag === '🏴☠️ 自建节点');
+    assert.deepEqual(selfGroup.outbounds, [...selfTags, 'block-out', 'direct-out']);
+    assert(!selfGroup.outbounds.includes(proxy.tag), 'airport nodes must not fill the self-hosted group');
+    assertReferences(config);
+  });
+}
+
+test('YouTube, Netflix, Disney and Spotify share one selector before generic CDN and Google routing', async () => {
+  const { config } = await convert();
+  const media = config.route.rules.find((rule) => rule.outbound === '🎥 流媒体分流');
+  for (const tag of ['geosite-youtube', 'geosite-netflix', 'geosite-disney', 'geosite-spotify']) {
+    assert(media.rule_set.includes(tag));
+  }
+  for (const rule of config.route.rules.filter((rule) =>
+    rule.outbound === '🚀 CDN 分流' || rule.domain_suffix?.includes('googleapis.com'))) {
+    assert(config.route.rules.indexOf(media) < config.route.rules.indexOf(rule));
+  }
+  assertReferences(config);
+});
+
+test('streaming lists all JP/HK/SG nodes directly and removes the separate Netflix selector', async () => {
+  const regional = ['🇯🇵 日本 01', 'JP 02', '日本 游戏 03', '日01', '🇭🇰 香港 01', 'HK 02',
+    'Hong Kong 03', '港游戏 04', '🇸🇬 新加坡 01', 'SG 02', 'Singapore 03', '狮城游戏 04',
+    'JP02', 'HK03', 'sg04', 'HKG05', 'JPN06', 'SGP07'];
+  const excluded = ['🇺🇸 美国日用', '🇹🇼 台湾 01', 'HK 剩余流量 100G', '🇺🇸 USGame 01',
+    'USGateway 01', 'ASGARD 01', 'SHK 01', 'MYJPLink 01'];
+  const custom = [{ ...proxy, tag: '洛杉矶主力' }, { ...proxy, tag: 'self-JP 02' }];
+  const { config } = await convert({
+    proxies: [...regional, ...excluded].map((tag) => ({ ...proxy, tag })), files: [custom],
+  });
+  const media = config.outbounds.find((outbound) => outbound.tag === '🎥 流媒体分流');
+  for (const tag of [...regional, ...custom.map((node) => node.tag), '🏴☠️ 自建节点']) {
+    assert(media.outbounds.includes(tag), `missing streaming option ${tag}`);
+  }
+  for (const tag of excluded) assert(!media.outbounds.includes(tag), `unexpected streaming node ${tag}`);
+  assert.equal(new Set(media.outbounds).size, media.outbounds.length);
+  assert.equal(media.default, '🚀 手选节点');
+  assert(!JSON.stringify(config).includes('🎥 奈飞节点'));
+  for (const [groupTag, unexpected] of [
+    ['🇸🇬 狮城节点', ['USGateway 01', 'ASGARD 01']],
+    ['🇭🇰 香港节点', ['SHK 01']],
+    ['🇯🇵 日本节点', ['MYJPLink 01']],
+  ]) {
+    const group = config.outbounds.find((outbound) => outbound.tag === groupTag);
+    for (const tag of unexpected) assert(!group.outbounds.includes(tag), `${tag} misclassified into ${groupTag}`);
+  }
+  assertReferences(config);
 });
 
 test('template tag collisions fail clearly, duplicate subscribed nodes are deduplicated', async () => {
@@ -263,3 +345,5 @@ test('1.14 Clash REST API and dashboard remain available', { skip: !binary, time
   const { config } = await convert();
   await require('./dns_policy_fixture.cjs').checkClashApi(t, binary, config);
 });
+
+require('./refactor_equivalence.cjs');
