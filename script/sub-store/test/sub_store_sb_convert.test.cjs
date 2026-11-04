@@ -297,6 +297,23 @@ test('YouTube, Netflix, Disney and Spotify share one selector before generic CDN
   assertReferences(config);
 });
 
+test('Google AI uses GPT with proxy DNS and explicit foreign family limits', async () => {
+  const { config } = await convert();
+  const googleAi = config.route.rule_set.find((rule) => rule.tag === 'geosite-google-ai');
+  assert.equal(googleAi.url, 'https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@sing/geo/geosite/google-deepmind.srs');
+  const gpt = config.route.rules.find((rule) => rule.rule_set?.includes('geosite-google-ai'));
+  // The IPv6 guard is logical; the business route must be a separate terminal route.
+  assert.equal(gpt.outbound, '🤖 GPT分流');
+  for (const rule of config.route.rules.filter((rule) => rule.domain_suffix?.includes('googleapis.com') || rule.outbound === '🚀 CDN 分流')) {
+    assert(config.route.rules.indexOf(gpt) < config.route.rules.indexOf(rule));
+  }
+  assert(config.dns.rules[0].rule_set.includes('geosite-google-ai'));
+  const dns = config.dns.rules.find((rule) => rule.server === 'proxyDns' && rule.rule_set?.includes('geosite-google-ai'));
+  assert(dns);
+  assert(config.route.rules.some((rule) => rule.action === 'reject' && rule.rules?.some((condition) => condition.rule_set?.includes('geosite-google-ai'))));
+  assertReferences(config);
+});
+
 test('streaming lists all JP/HK/SG nodes directly and removes the separate Netflix selector', async () => {
   const regional = ['🇯🇵 日本 01', 'JP 02', '日本 游戏 03', '日01', '🇭🇰 香港 01', 'HK 02',
     'Hong Kong 03', '港游戏 04', '🇸🇬 新加坡 01', 'SG 02', 'Singapore 03', '狮城游戏 04',

@@ -79,6 +79,7 @@
         "rule_set": [
           "ac-openai",
           "geosite-openai",
+          "geosite-google-ai",
           "ac-claude",
           "proxy-ip-cdn",
           "proxy-domain-cdn",
@@ -118,6 +119,7 @@
         "rule_set": [
           "ac-openai",
           "geosite-openai",
+          "geosite-google-ai",
           "ac-claude"
         ],
         "server": "proxyDns"
@@ -740,6 +742,7 @@
             "rule_set": [
               "ac-openai",
               "geosite-openai",
+              "geosite-google-ai",
               "ac-claude",
               "proxy-ip-cdn",
               "proxy-domain-cdn",
@@ -826,7 +829,8 @@
       {
         "rule_set": [
           "ac-openai",
-          "geosite-openai"
+          "geosite-openai",
+          "geosite-google-ai"
         ],
         "outbound": "🤖 GPT分流"
       },
@@ -1080,6 +1084,13 @@
         "type": "remote",
         "format": "binary",
         "url": "https://testingcf.jsdelivr.net/gh/Toperlock/sing-box-geosite@main/rule/OpenAI.srs",
+        "http_client": "direct-client"
+      },
+      {
+        "tag": "geosite-google-ai",
+        "type": "remote",
+        "format": "binary",
+        "url": "https://testingcf.jsdelivr.net/gh/MetaCubeX/meta-rules-dat@sing/geo/geosite/google-deepmind.srs",
         "http_client": "direct-client"
       },
       {

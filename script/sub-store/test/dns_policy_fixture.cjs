@@ -14,7 +14,10 @@ const run = promisify(execFile);
 const closeServer = (server) => new Promise((resolve) => server.close(resolve));
 const hubspotDomains = ['hs-analytics.net', 'track.hs-analytics.net', 'hs-scripts.com', 'js.hs-scripts.com', 'hubspot.com', 'app.hubspot.com'];
 const streamDomains = ['youtube.com', 'rr1.googlevideo.com', 'youtubei.googleapis.com', 'netflix.test', 'disney.test', 'spotify.test'];
-const foreignDomains = ['foreign-explicit.test', 'foreign-cdn.test', 'claude.ai', 'clau.de', 'foreign-fallback.test', 'direct-first.test', ...hubspotDomains, ...streamDomains];
+const googleAiDomains = ['daily-cloudcode-pa.googleapis.com', 'cloudcode-pa.googleapis.com',
+  'antigravity-pa.googleapis.com', 'antigravity.googleapis.com', 'cloudaicompanion.googleapis.com',
+  'antigravity.google', 'antigravity-unleash.goog', 'gemini.google.com', 'generativelanguage.googleapis.com'];
+const foreignDomains = ['foreign-explicit.test', 'foreign-cdn.test', 'claude.ai', 'clau.de', 'foreign-fallback.test', 'direct-first.test', ...hubspotDomains, ...streamDomains, ...googleAiDomains];
 
 async function listen(server, options) {
   await new Promise((resolve, reject) => {
@@ -82,10 +85,10 @@ function configureDns(config, local, remote) {
   const fixtureDomains = {
     'ac-custom-direct': ['direct-first.test', 'direct-local.test'],
     'ac-openai': ['foreign-explicit.test', 'direct-first.test'],
-    'geosite-lite-cn': ['domestic.test', 'domestic-v4only.test', 'domestic-v6only.test', 'claude.ai'],
+    'geosite-lite-cn': ['domestic.test', 'domestic-v4only.test', 'domestic-v6only.test', 'claude.ai', ...googleAiDomains],
     // Force the user-approved early routes to win over an overlapping ad rule.
     'geosite-category-ads-all': ['claude.ai', ...hubspotDomains],
-    'proxy-domain-cdn': ['foreign-cdn.test', ...streamDomains],
+    'proxy-domain-cdn': ['foreign-cdn.test', ...streamDomains, ...googleAiDomains],
     'geosite-netflix': ['netflix.test'],
     'geosite-disney': ['disney.test'],
     'geosite-spotify': ['spotify.test'],
@@ -93,7 +96,9 @@ function configureDns(config, local, remote) {
     'ac-custom-proxy': ['custom-proxy-cn.test'],
   };
   const binaries = { 'ac-claude': 'Ac-claude-proxy.srs', 'geosite-youtube': 'geosite/youtube.srs' };
-  config.route.rule_set = config.route.rule_set.map(({ tag }) => binaries[tag] ? {
+  config.route.rule_set = config.route.rule_set.map(({ tag }) => tag === 'geosite-google-ai' ? {
+    type: 'local', tag, format: 'source', path: path.resolve(__dirname, 'fixtures/google-deepmind.json'),
+  } : binaries[tag] ? {
     type: 'local', tag, format: 'binary', path: path.resolve(__dirname, '../../../sing/rules', binaries[tag]),
   } : ({
     type: 'inline', tag,
@@ -170,6 +175,10 @@ exports.checkDns = async function checkDns(t, binary, config) {
     'Claude must use proxyDns before an overlapping domestic rule');
   assert(!local.requests.some((query) => query.name === 'claude.ai'),
     'an overlapping domestic rule must not capture Claude DNS queries');
+  for (const name of googleAiDomains) {
+    assert(remote.requests.some((query) => query.name === name && query.type === 1), `${name}: Google AI must use proxyDns`);
+    assert(!local.requests.some((query) => query.name === name), `${name}: a domestic overlap must not capture Google AI DNS`);
+  }
   for (const name of ['domestic.test', 'direct-local.test', 'unknown-cn.test', 'unknown-foreign.test']) {
     const domestic = name !== 'unknown-foreign.test';
     assert.deepEqual(await resolver.resolve4(name), [domestic ? '203.0.113.25' : '198.51.100.25']);
@@ -195,12 +204,15 @@ exports.checkConnections = async function checkConnections(t, binary, config) {
   t.after(() => closeServer(v6));
   const targets = [];
   const streamTargets = [];
+  const gptTargets = [];
+  const authorization = (name) => 'Basic ' + Buffer.from(`${name}:fixture-only`).toString('base64');
   const proxy = http.createServer();
   proxy.on('connect', (request, client, head) => {
     const target = new URL(`http://${request.url}`);
     const host = target.hostname.replace(/^\[|\]$/g, '');
     targets.push(host);
-    if (request.headers['proxy-authorization']) streamTargets.push(host);
+    if (request.headers['proxy-authorization'] === authorization('stream-fixture')) streamTargets.push(host);
+    if (request.headers['proxy-authorization'] === authorization('gpt-fixture')) gptTargets.push(host);
     // Never resolve fixture domains via the system or a real DNS service.
     if (!net.isIP(host)) { client.end('HTTP/1.1 502 Bad Gateway\r\n\r\n'); return; }
     const connection = net.createConnection({ host, port: Number(target.port) }, () => {
@@ -226,6 +238,11 @@ exports.checkConnections = async function checkConnections(t, binary, config) {
   const media = config.outbounds.find((outbound) => outbound.tag === '🎥 流媒体分流');
   media.outbounds = ['stream-fixture'];
   media.default = 'stream-fixture';
+  config.outbounds.push({ type: 'http', tag: 'gpt-fixture', server: '127.0.0.1', server_port: proxyPort,
+    username: 'gpt-fixture', password: 'fixture-only' });
+  const gpt = config.outbounds.find((outbound) => outbound.tag === '🤖 GPT分流');
+  gpt.outbounds = ['gpt-fixture'];
+  gpt.default = 'gpt-fixture';
   // Fixture addresses are loopback; remove only this bypass so proxy paths are exercised too.
   config.route.rules = config.route.rules.filter((rule) => !rule.ip_is_private);
   const reservation = net.createServer();
@@ -237,9 +254,13 @@ exports.checkConnections = async function checkConnections(t, binary, config) {
     '--proxy', `socks5h://127.0.0.1:${port}`, `http://${name}:${webPort}/`], { timeout: 6000 })).stdout;
   for (const name of foreignDomains) {
     const before = streamTargets.length;
+    const gptBefore = gptTargets.length;
     assert.equal(await request(name), 'IPv4', `${name}\n${logs()}`);
     if (streamDomains.includes(name)) {
       assert.equal(streamTargets.length, before + 1, `${name}: must use the shared streaming selector, ahead of CDN/Google rules`);
+    }
+    if (googleAiDomains.includes(name)) {
+      assert.equal(gptTargets.length, gptBefore + 1, `${name}: must use GPT, ahead of generic Google/CDN/domestic rules`);
     }
   }
   assert(targets.includes('127.0.0.1'), 'foreign proxy connections must receive a resolved IPv4 destination');
@@ -254,7 +275,7 @@ exports.checkConnections = async function checkConnections(t, binary, config) {
   await assert.rejects(ipv6Request('foreign-explicit.test'), 'cached IPv6 with a known foreign HTTP host must be rejected');
   await assert.rejects(ipv6Request('foreign-fallback.test'), 'cached foreign IPv6 must not escape via the default outbound');
   await assert.rejects(ipv6Request('direct-first.test'), 'a custom-direct overlap must not bypass the foreign IPv6 restriction');
-  for (const name of ['claude.ai', ...hubspotDomains, 'youtube.com']) {
+  for (const name of ['claude.ai', ...hubspotDomains, 'youtube.com', ...googleAiDomains]) {
     await assert.rejects(ipv6Request(name), `${name}: early business routes must not bypass the foreign IPv6 restriction`);
   }
   for (const name of ['domestic.test', 'direct-local.test', 'unknown.test']) {

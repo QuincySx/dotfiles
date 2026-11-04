@@ -83,6 +83,8 @@ YouTube、奈飞、Disney、Spotify 共用 `🎥 流媒体分流`，在此处选
 
 GitHub 不再单独指定到手选节点，继续匹配微软服务等已有分流规则；CDN 分流保留。GitHub 的国外 IPv4 限制仍保留。
 
+Google AI 接入 MetaCubeX 的 `google-deepmind.srs`，标签为 `geosite-google-ai`，与 OpenAI 一起使用 `🤖 GPT分流`。该规则在通用 Google、CDN 规则之前匹配；DNS 提前使用 `proxyDns`，并加入国外 AAAA/HTTPS/SVCB 过滤与已识别 IPv6 连接拒绝。Antigravity 的 `daily-cloudcode-pa.googleapis.com`、`cloudcode-pa.googleapis.com` 等模型接口因此跟随 GPT 选择，不再落到通用手选组。调整 GPT 组节点即可切换这些 Google AI 服务的业务出口；其他 Google 域名继续按原规则处理。
+
 ### Claude / HubSpot 提前路由
 
 `ac-claude` 和 `hs-analytics.net`、`hs-scripts.com`、`hubspot.com` 的路由，放在 QUIC 拒绝之后、隐私/广告规则及 Clash 模式规则之前，使用 `🤖 Claude分流`。这是用户确认的优先级：即使命中后面的广告规则或切换 Clash 模式，这些域名仍先按 Claude 路由处理。
@@ -135,6 +137,8 @@ node script/sub-store/test/sub_store_sb_convert.test.cjs /path/to/sing-box-1.14.
 真实核心检查在测试机使用 `mac` 预设，旁路由参数另有结构断言；不等同于在用户 Linux 路由器上启动和联网验收。发布后，应先在路由器对 Sub-Store **生成后的完整配置**执行 `sing-box check -c <实际配置路径>`，成功后再通过 Momo 重载。
 
 传入 1.14 核心时，还会启动仅监听本地地址的 DNS、HTTP 双栈目标和代理实例，验证国外 A 可用且 AAAA/HTTPS/SVCB 为空、国内/未知双栈可用、未知 IPv4 优先及 IPv6 回退、国外无 IPv4 时失败、已识别的国外旧 IPv6 连接被拒绝，以及交给代理的是已解析 IP。Claude/HubSpot 使用实际编译的规则集，验证其优先于重叠的广告规则。另有本地 Clash REST API 和静态面板访问检查。需要系统提供 `dig` 和 `curl`，不会访问真实 DNS 上游或外部代理。
+
+Google AI 测试使用 `test/fixtures/google-deepmind.json`，从 MetaCubeX `meta-rules-dat` 的 `f78aeb1c01f3f7e020d9e7fcfa4f7198120a10be` 提交中 `geo/geosite/google-deepmind.srs` 解编译得到。测试通过独立的代理身份确认模型接口实际使用 GPT 选择组，并覆盖与国内、CDN 规则重叠时的优先级；生产配置继续订阅上游更新。
 
 更新模板后需重新生成订阅、重载核心，并清理终端/浏览器缓存的旧 DNS 结果。自带 DoH 和无法识别域名的 IPv6 字面量请求无法套用域名分类；未知域名需要保留 IPv6，因此没有全局屏蔽 IPv6。
 
