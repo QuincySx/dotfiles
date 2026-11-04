@@ -292,8 +292,15 @@ const unsupportedInputs = new Set([
   'api-path-precedence', 'multiple-api-services',
 ]);
 const unsupportedPrefixes = ['api-listener-', 'api-port-', 'legacy-cache-', 'cache-precedence-'];
+// 这些旧结果正是本次要修复的行为，改由独立的节点、DNS 和参数测试断言。
+const correctedScenarios = new Set([
+  'duplicate-node-tags', 'same-airport-and-self-tag', 'template-node-tag-collision',
+  'named-file-multiple', 'named-file-custom-bundle',
+  'dns-slice-order', 'multiple-dns-slices', 'custom-append-address',
+]);
 const currentTemplateScenarios = scenarios.filter((scenario) =>
-  !unsupportedInputs.has(scenario.name) && !unsupportedPrefixes.some((prefix) => scenario.name.startsWith(prefix)));
+  !unsupportedInputs.has(scenario.name) && !unsupportedPrefixes.some((prefix) => scenario.name.startsWith(prefix)) &&
+  !correctedScenarios.has(scenario.name));
 
 test('current 1.14 template and personal parameters preserve their generated output and external behavior', { timeout: 45000 }, async (t) => {
   assert.equal(createHash('sha256').update(baseline).digest('hex'), '7c0dddc1e7c7b985adce20445dab1ed9413a0d2559045272612eb51345507d8d');
@@ -305,5 +312,5 @@ test('current 1.14 template and personal parameters preserve their generated out
       assert.equal(mismatch, null, `${candidate.file}: ${scenario.name}\n${mismatch}`);
     }
   }
-  t.diagnostic(`${currentTemplateScenarios.length} current-template scenarios × ${candidates.length} active scripts match the baseline; old-format migration and missing-template fallbacks are explicitly out of scope.`);
+  t.diagnostic(`${currentTemplateScenarios.length} current-template scenarios × ${candidates.length} active scripts preserve unaffected behavior, including the existing router IP exclusion. Eight corrected scenarios have independent regression tests; old-format migration and missing-template fallbacks remain out of scope.`);
 });

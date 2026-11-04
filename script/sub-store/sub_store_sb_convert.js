@@ -103,6 +103,10 @@ function businessIndex(rules) {
   const index = rules.findIndex((rule) => !["sniff", "hijack-dns"].includes(rule.action));
   return index === -1 ? rules.length : index;
 }
+// 模板开头的固定 DNS 过滤始终先执行；附加规则仍保持后输入者优先。
+const templateDnsRules = config.dns?.rules || [];
+let dnsInsertIndex = templateDnsRules.findIndex((rule) => rule.action !== "predefined");
+if (dnsInsertIndex === -1) dnsInsertIndex = templateDnsRules.length;
 for (const part of parts.filter((part) => part !== config)) {
   if (!part || typeof part !== "object") continue;
   if (Array.isArray(part)) {
@@ -113,7 +117,7 @@ for (const part of parts.filter((part) => part !== config)) {
   if (part.dns && typeof part.dns === "object") {
     config.dns ||= {};
     if (Array.isArray(part.dns.servers)) mergeTagged(config.dns.servers ||= [], part.dns.servers);
-    if (Array.isArray(part.dns.rules)) (config.dns.rules ||= []).unshift(...part.dns.rules);
+    if (Array.isArray(part.dns.rules)) (config.dns.rules ||= []).splice(dnsInsertIndex, 0, ...part.dns.rules);
     for (const key of ["strategy", "final", "reverse_mapping", "client_subnet"]) {
       if (part.dns[key] !== undefined) config.dns[key] = part.dns[key];
     }
@@ -238,18 +242,34 @@ for (const outbound of config.outbounds) {
   if (!outbound.tag || templateTags.has(outbound.tag)) throw new Error(`模板出站 tag 缺失或重复: ${outbound.tag}`);
   templateTags.add(outbound.tag);
 }
-const nodeTags = new Set();
-for (const node of [...subscribed, ...selfNodes]) {
-  if (!node || typeof node !== "object" || !node.tag) continue;
-  if (templateTags.has(node.tag)) throw new Error(`节点 tag 与模板出站冲突: ${node.tag}`);
-  if (!nodeTags.has(node.tag)) {
-    nodeTags.add(node.tag);
+const reservedTags = new Set([...templateTags, ...[...subscribed, ...selfNodes].map((node) => node?.tag)]);
+const usedTags = new Set(templateTags);
+const selfTags = new Set();
+for (const [nodes, isSelf] of [[subscribed, false], [selfNodes, true]]) {
+  const sourceTags = new Map();
+  const additions = [];
+  for (const node of nodes) {
+    if (!node || typeof node !== "object" || !node.tag) continue;
+    let tag = node.tag;
+    let suffix = 1;
+    while (usedTags.has(tag) || (tag !== node.tag && reservedTags.has(tag))) tag = `${node.tag} ${suffix++}`;
+    usedTags.add(tag);
+    if (!sourceTags.has(node.tag)) sourceTags.set(node.tag, tag);
+    if (tag !== node.tag) console.log(`[Sub-Store] 同名节点自动改名: ${node.tag} → ${tag}`);
+    additions.push({ ...node, tag });
+    if (isSelf) selfTags.add(tag);
+  }
+  // 同一来源的节点链和选择组继续指向该来源，不串到机场的同名节点。
+  for (const node of additions) {
+    if (Array.isArray(node.outbounds)) node.outbounds = node.outbounds.map((tag) => sourceTags.get(tag) || tag);
+    for (const key of ["default", "detour"]) {
+      if (sourceTags.has(node[key])) node[key] = sourceTags.get(node[key]);
+    }
     config.outbounds.push(node);
   }
 }
 const nonProxyTypes = new Set(["selector", "urltest", "direct", "block", "dns"]);
 const proxies = config.outbounds.filter((outbound) => !nonProxyTypes.has(outbound.type));
-const selfTags = new Set(selfNodes.map((node) => node?.tag).filter(Boolean));
 const selfProxyTags = proxies.filter((node) => selfTags.has(node.tag) || /self/i.test(node.tag)).map((node) => node.tag);
 
 // 3. 应用个人设备、地址、目录、直连域名和 ECS 参数。
@@ -257,7 +277,8 @@ const interfaceName = firstDefined(custom.interfaceName, args.interfaceName, pro
 const uids = firstDefined(custom.excludeUid, args.excludeUid, profile.exclude_uid);
 const uidList = uids == null || uids === "" ? [] : strings(uids).map((uid) => parseInt(uid, 10)).filter((uid) => !isNaN(uid));
 const rawAddresses = custom.routeExcludeAddress || custom.excludeAddress || args.appendRouteExcludeAddress ||
-  args.appendExcludeAddress || args.routeExcludeAddress || args.excludeAddress || profile.route_exclude_address;
+  args.appendExcludeAddress || custom.appendRouteExcludeAddress || custom.appendExcludeAddress ||
+  args.routeExcludeAddress || args.excludeAddress || profile.route_exclude_address;
 let append = Boolean(args.appendRouteExcludeAddress || args.appendExcludeAddress ||
   custom.appendRouteExcludeAddress || custom.appendExcludeAddress || profile.append_route_exclude_address);
 let addressInput = rawAddresses;

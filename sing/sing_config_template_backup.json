@@ -167,8 +167,7 @@
       {
         "rule_set": "geoip-cn",
         "match_response": true,
-        "action": "route",
-        "server": "localDns"
+        "action": "respond"
       }
     ],
     "strategy": "prefer_ipv4",
@@ -844,11 +843,6 @@
       {
         "action": "bypass",
         "outbound": "direct-out",
-        "rule_set": "geoip-cn"
-      },
-      {
-        "action": "bypass",
-        "outbound": "direct-out",
         "domain_suffix": [
           "xethub.hf.co",
           "in.appcenter.ms"
@@ -957,6 +951,7 @@
             "invert": true
           }
         ],
+        "action": "bypass",
         "outbound": "direct-out"
       },
       {

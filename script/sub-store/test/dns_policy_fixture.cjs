@@ -44,7 +44,8 @@ async function upstream(t, local, loopback = false) {
       domestic ? '20010db8000100000000000000000025' : '20010db8000200000000000000000025', 'hex');
     let data;
     if (type === 1 && !name.includes('-v6only.')) {
-      data = Buffer.from(loopback ? [127, 0, 0, 1] : domestic ? [203, 0, 113, 25] : [198, 51, 100, 25]);
+      const lastOctet = name === 'unknown-abroad.test' || (!local && name === 'unknown-cn.test') ? 2 : 1;
+      data = Buffer.from(loopback ? [127, 0, 0, lastOctet] : domestic ? [203, 0, 113, 25] : [198, 51, 100, 25]);
     }
     if (type === 28 && !name.includes('-v4only.')) data = ipv6;
     // HTTPS/SVCB records deliberately carry ipv6hint, even if AAAA is suppressed.
@@ -88,7 +89,8 @@ function configureDns(config, local, remote) {
     'geosite-netflix': ['netflix.test'],
     'geosite-disney': ['disney.test'],
     'geosite-spotify': ['spotify.test'],
-    'geosite-geolocation-!cn': ['foreign-fallback.test', 'foreign-v6only.test'],
+    'geosite-geolocation-!cn': ['foreign-fallback.test', 'foreign-v6only.test', 'foreign-cn.test'],
+    'ac-custom-proxy': ['custom-proxy-cn.test'],
   };
   const binaries = { 'ac-claude': 'Ac-claude-proxy.srs', 'geosite-youtube': 'geosite/youtube.srs' };
   config.route.rule_set = config.route.rule_set.map(({ tag }) => binaries[tag] ? {
@@ -142,6 +144,8 @@ exports.checkDns = async function checkDns(t, binary, config) {
   const port = reservation.address().port;
   await new Promise((resolve) => reservation.close(resolve));
   configureDns(config, local, remote);
+  // 试查命中后直接采用响应，不依赖 DNS 缓存来避免重复查询。
+  config.dns.disable_cache = true;
   config.inbounds = [{ type: 'direct', tag: 'dns-test', listen: '127.0.0.1', listen_port: port,
     network: 'udp', override_address: '127.0.0.1', override_port: 53 }];
   config.outbounds = [{ type: 'direct', tag: 'direct-out' }];
@@ -172,6 +176,8 @@ exports.checkDns = async function checkDns(t, binary, config) {
     assert.deepEqual(await resolver.resolve6(name), [domestic ? '2001:db8:1::25' : '2001:db8:2::25'],
       `${name}: IPv6 must remain available`);
   }
+  assert.equal(local.requests.filter((query) => query.name === 'unknown-cn.test' && query.type === 1).length, 1,
+    'an accepted evaluated response must be reused without another local query, even with caching disabled');
 };
 
 exports.checkConnections = async function checkConnections(t, binary, config) {
@@ -265,6 +271,60 @@ exports.checkConnections = async function checkConnections(t, binary, config) {
   assert(![...local.requests, ...remote.requests].some((query) =>
     (foreignDomains.includes(query.name) || query.name === 'foreign-v6only.test') && query.type === 28),
     'foreign AAAA queries must not reach either upstream');
+};
+
+exports.checkFallback = async function checkFallback(t, binary, config) {
+  const local = await upstream(t, true, true);
+  const remote = await upstream(t, false, true);
+  const backend = http.createServer((request, response) => {
+    response.setHeader('Connection', 'close');
+    response.end('fixture-ok');
+  });
+  const webPort = await listen(backend, { host: '127.0.0.1', port: 0 });
+  t.after(() => closeServer(backend));
+  const targets = [];
+  const proxy = http.createServer();
+  proxy.on('connect', (request, client, head) => {
+    targets.push(request.url);
+    // All proxy destinations are served locally; no external DNS or network is used.
+    const connection = net.createConnection({ host: '127.0.0.1', port: webPort }, () => {
+      client.write('HTTP/1.1 200 Connection Established\r\n\r\n');
+      if (head.length) connection.write(head);
+      client.pipe(connection).pipe(client);
+    });
+    connection.on('error', () => client.destroy());
+    client.on('error', () => connection.destroy());
+    client.on('close', () => connection.destroy());
+  });
+  const proxyPort = await listen(proxy, { host: '127.0.0.1', port: 0 });
+  t.after(() => closeServer(proxy));
+  configureDns(config, local, remote);
+  config.route.rule_set.find((rule) => rule.tag === 'geoip-cn').rules = [{ ip_cidr: ['127.0.0.1/32'] }];
+  config.outbounds = config.outbounds.map((outbound) => {
+    if (outbound.type === 'anytls') return { type: 'http', tag: outbound.tag, server: '127.0.0.1', server_port: proxyPort };
+    if (outbound.type === 'urltest') return { type: 'selector', tag: outbound.tag, outbounds: outbound.outbounds };
+    return outbound;
+  });
+  // The fixture uses loopback IPs to represent domestic/public destinations.
+  config.route.rules = config.route.rules.filter((rule) => !rule.ip_is_private);
+  const reservation = net.createServer();
+  const port = await listen(reservation, { host: '127.0.0.1', port: 0 });
+  await closeServer(reservation);
+  config.inbounds = [{ type: 'mixed', tag: 'tun-in', listen: '127.0.0.1', listen_port: port }];
+  const logs = await startCore(t, binary, config);
+  for (const [name, expectProxy] of [
+    ['unknown-cn.test', false], ['unknown-abroad.test', true],
+    ['foreign-cn.test', true], ['custom-proxy-cn.test', true],
+  ]) {
+    const before = targets.length;
+    const { stdout } = await run('curl', ['--silent', '--show-error', '--max-time', '4', '--noproxy', '',
+      '--proxy', `socks5h://127.0.0.1:${port}`, `http://${name}:${webPort}/`], { timeout: 6000 });
+    assert.equal(stdout, 'fixture-ok', `${name}\n${logs()}`);
+    assert.equal(targets.length > before, expectProxy, `${name}: incorrect proxy/direct decision\n${logs()}`);
+  }
+  assert(local.requests.some((query) => query.name === 'unknown-cn.test' && query.type === 1));
+  assert(!remote.requests.some((query) => query.name === 'unknown-cn.test' && query.type === 1),
+    'a small domestic domain must retain the evaluated domestic answer');
 };
 
 exports.checkClashApi = async function checkClashApi(t, binary, config) {

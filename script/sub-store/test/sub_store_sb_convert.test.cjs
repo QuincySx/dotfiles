@@ -217,6 +217,46 @@ test('personal route exclusions and TUN overrides retain their existing behavior
   assert.equal(tun.auto_route, false);
 });
 
+for (const script of scripts) {
+  test(`${script}: DNS slices stay after the foreign guard, with later slices taking priority`, async () => {
+    const { config } = await convert({ script, files: [
+      { dns: { rules: [{ domain: ['one.test'], action: 'route', server: 'localDns' }] } },
+      { dns: { rules: [{ domain: ['two.test'], action: 'route', server: 'proxyDns' }] } },
+    ] });
+    assert.deepEqual(config.dns.rules[0], template14.dns.rules[0]);
+    assert.deepEqual(config.dns.rules.slice(1, 3).map((rule) => rule.domain), [['two.test'], ['one.test']]);
+    assert.deepEqual(config.dns.rules.slice(3), template14.dns.rules.slice(1));
+  });
+
+  test(`${script}: bundled custom append addresses are applied`, async () => {
+    for (const key of ['appendRouteExcludeAddress', 'appendExcludeAddress']) {
+      const custom = Buffer.from(JSON.stringify({ [key]: ['192.0.2.123', '2001:db8::1/128'] })).toString('base64');
+      const { config } = await convert({ script, args: { custom } });
+      assert.deepEqual(config.inbounds[0].route_exclude_address,
+        ['5.5.5.5/32', '10.10.1.20/32', '192.0.2.123/32', '2001:db8::1/128']);
+    }
+  });
+
+  test(`${script}: routers keep domestic IP exclusion, with conditional fallback for core traffic`, async () => {
+    for (const profile of [undefined, 'mac', 'router', 'router-bypass', 'router_pbr', 'mobile']) {
+      const { config } = await convert({ script, args: { profile } });
+      const excluded = ['mac', 'mobile'].includes(profile) ? [] : ['geoip-cn'];
+      assert.deepEqual(config.inbounds.find((inbound) => inbound.type === 'tun').route_exclude_address_set, excluded);
+      assert(!config.route.rules.some((rule) => rule.rule_set === 'geoip-cn'));
+      const fallback = config.route.rules.find((rule) => rule.type === 'logical' &&
+        rule.rules?.some((condition) => condition.rule_set === 'geoip-cn'));
+      assert.deepEqual(fallback, {
+        type: 'logical', mode: 'and',
+        rules: [{ rule_set: 'geoip-cn' }, { rule_set: 'geosite-geolocation-!cn', invert: true }],
+        action: 'bypass', outbound: 'direct-out',
+      });
+      const customProxy = config.route.rules.find((rule) => rule.rule_set?.includes('ac-custom-proxy'));
+      assert(config.route.rules.indexOf(fallback) > config.route.rules.indexOf(customProxy));
+      assert(config.route.rule_set.some((rule) => rule.tag === 'geoip-cn'));
+    }
+  });
+}
+
 test('customNodes=none disables the custom-node slice pool', async () => {
   const { config } = await convert({ args: { customNodes: 'none' }, files: [[{ ...proxy, tag: 'self-disabled' }]] });
   assert(!config.outbounds.some((outbound) => outbound.tag === 'self-disabled'));
@@ -230,7 +270,7 @@ for (const script of scripts) {
     const custom = [{ ...proxy, tag: '东京主力' }, { ...proxy, tag: '洛杉矶主力' }];
     const legacy = { ...proxy, tag: 'self-legacy' };
     const { config } = await convert({ script, proxies: [proxy, legacy], files: [[...custom, custom[0]]] });
-    const selfTags = [legacy.tag, ...custom.map((node) => node.tag)];
+    const selfTags = [legacy.tag, ...custom.map((node) => node.tag), `${custom[0].tag} 1`];
     for (const tag of ['🚀 手选节点', '🤖 GPT分流', '🤖 Claude分流', '🚀 CDN 分流', '🎥 流媒体分流', '🐟 漏网分流']) {
       const group = config.outbounds.find((outbound) => outbound.tag === tag);
       assert.deepEqual(group.outbounds.slice(0, selfTags.length + 1), [...selfTags, '🏴☠️ 自建节点']);
@@ -286,11 +326,63 @@ test('streaming lists all JP/HK/SG nodes directly and removes the separate Netfl
   assertReferences(config);
 });
 
-test('template tag collisions fail clearly, duplicate subscribed nodes are deduplicated', async () => {
-  await assert.rejects(convert({ files: [[{ ...proxy, tag: 'direct-out' }]] }), /节点 tag 与模板出站冲突/);
-  const { config } = await convert({ proxies: [proxy, proxy] });
-  assert.equal(config.outbounds.filter((outbound) => outbound.tag === proxy.tag).length, 1);
-});
+for (const script of scripts) {
+  test(`${script}: duplicate node names get numbered without replacing existing names or sources`, async () => {
+    const logs = [];
+    const airport = { ...proxy, tag: '主力', server: '192.0.2.10' };
+    const custom = { ...proxy, tag: '主力', server: '192.0.2.20' };
+    const { config } = await convert({ script,
+      proxies: [airport, { ...airport, tag: '主力 1' }, airport],
+      files: [[custom, { ...custom, server: '192.0.2.21' }, { ...custom, tag: 'direct-out' }]],
+      runtime: { console: { log: (message) => logs.push(message) } },
+    });
+    for (const [tag, server] of [
+      ['主力', '192.0.2.10'], ['主力 1', '192.0.2.10'], ['主力 2', '192.0.2.10'],
+      ['主力 3', '192.0.2.20'], ['主力 4', '192.0.2.21'], ['direct-out 1', '192.0.2.20'],
+    ]) assert.equal(config.outbounds.find((outbound) => outbound.tag === tag)?.server, server);
+    const selfTags = ['主力 3', '主力 4', 'direct-out 1'];
+    assert.deepEqual(config.outbounds.find((outbound) => outbound.tag === '🏴☠️ 自建节点').outbounds,
+      [...selfTags, 'block-out', 'direct-out']);
+    assert.deepEqual(config.outbounds.find((outbound) => outbound.tag === '🤖 GPT分流').outbounds.slice(0, 3), selfTags);
+    assert.equal(config.outbounds.find((outbound) => outbound.tag === 'direct-out').type, 'direct');
+    assert(logs.some((message) => message.includes('主力 → 主力 3')));
+    assertReferences(config);
+  });
+
+  test(`${script}: renamed self-hosted chains and selectors keep their own source references`, async () => {
+    const { config } = await convert({ script, proxies: [{ ...proxy, tag: '同名' }], files: [[
+      { ...proxy, tag: '同名', server: '192.0.2.20' },
+      { ...proxy, tag: '自建链', detour: '同名' },
+      { type: 'selector', tag: '自建选择', outbounds: ['同名'], default: '同名' },
+    ]] });
+    assert.equal(config.outbounds.find((outbound) => outbound.tag === '自建链').detour, '同名 1');
+    const selector = config.outbounds.find((outbound) => outbound.tag === '自建选择');
+    assert.deepEqual(selector.outbounds, ['同名 1']);
+    assert.equal(selector.default, '同名 1');
+    assertReferences(config);
+  });
+
+  test(`${script}: multiple named node files retain each same-named self-hosted node`, async () => {
+    for (const args of [
+      { localFiles: ['one', 'two'] },
+      { custom: Buffer.from(JSON.stringify({ localFiles: ['one', 'two'] })).toString('base64') },
+    ]) {
+      const reads = [];
+      const { config } = await convert({ script, args, runtime: {
+        $substore: { read: (name) => {
+          reads.push(name);
+          return JSON.stringify([{ ...proxy, tag: '本地自建', server: name === 'one' ? '192.0.2.20' : '192.0.2.21' }]);
+        } },
+      } });
+      assert.deepEqual(reads, ['one', 'two']);
+      assert.equal(config.outbounds.find((outbound) => outbound.tag === '本地自建').server, '192.0.2.20');
+      assert.equal(config.outbounds.find((outbound) => outbound.tag === '本地自建 1').server, '192.0.2.21');
+      assert.deepEqual(config.outbounds.find((outbound) => outbound.tag === '🏴☠️ 自建节点').outbounds,
+        ['本地自建', '本地自建 1', 'block-out', 'direct-out']);
+      assertReferences(config);
+    }
+  });
+}
 
 test('missing Hong Kong nodes does not silently send default remote DNS direct', async () => {
   const japan = { ...proxy, tag: 'TEST-Japan' };
@@ -336,9 +428,17 @@ test('1.14 real DNS queries distinguish domestic, foreign and unclassified domai
 test('1.14 actual connections enforce foreign IPv4 and retain dual-stack fallback elsewhere', { skip: !binary, timeout: 30000 }, async (t) => {
   const { config } = await convert({
     args: { profile: 'mac', bypassDomains: 'unknown-v6only.test' },
-    files: [{ route: { rules: [{ domain: ['foreign-explicit.test'], action: 'route', outbound: 'direct-out' }] } }],
+    files: [{
+      dns: { rules: [{ domain: ['foreign-v6only.test'], action: 'route', server: 'proxyDns' }] },
+      route: { rules: [{ domain: ['foreign-explicit.test'], action: 'route', outbound: 'direct-out' }] },
+    }],
   });
   await require('./dns_policy_fixture.cjs').checkConnections(t, binary, config);
+});
+
+test('1.14 traffic entering the core keeps business rules ahead of domestic IP fallback', { skip: !binary, timeout: 30000 }, async (t) => {
+  const { config } = await convert({ args: { profile: 'mac' } });
+  await require('./dns_policy_fixture.cjs').checkFallback(t, binary, config);
 });
 
 test('1.14 Clash REST API and dashboard remain available', { skip: !binary, timeout: 20000 }, async (t) => {
