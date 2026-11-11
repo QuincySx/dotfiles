@@ -98,3 +98,6 @@ DOMAIN-SUFFIX,schwab.com
 DOMAIN-SUFFIX,schwab.com.cn
 DOMAIN-SUFFIX,schwab.com.hk
 DOMAIN-SUFFIX,schwab.co.uk
+
+# MakerWorld
+DOMAIN-SUFFIX,makerworld.com
