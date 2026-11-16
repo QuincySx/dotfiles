@@ -1,6 +1,7 @@
 # Anthropic Claude
 DOMAIN,cdn.usefathom.com
 DOMAIN-SUFFIX,claudeusercontent.com
+DOMAIN-SUFFIX,claudemcpclient.com
 DOMAIN-SUFFIX,stripe.com
 DOMAIN-SUFFIX,anthropic.com
 DOMAIN-SUFFIX,claude.ai
@@ -13,3 +14,7 @@ DOMAIN-SUFFIX,clau.de
 DOMAIN-SUFFIX,hs-analytics.net
 DOMAIN-SUFFIX,hs-scripts.com
 DOMAIN-SUFFIX,hubspot.com
+
+# AdsPower
+DOMAIN-SUFFIX,adspower.com
+DOMAIN-SUFFIX,adspower.net
