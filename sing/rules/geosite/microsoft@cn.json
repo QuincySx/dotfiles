@@ -48,11 +48,11 @@
         "surface.downloads.prss.microsoft.com",
         "vlportal.download.prss.microsoft.com",
         "volic.download.prss.microsoft.com",
-        "vscode.download.prss.microsoft.com",
         "vz.download.prss.microsoft.com",
         "windbg.download.prss.microsoft.com",
         "bj1.api.bing.com",
-        "download.visualstudio.microsoft.com"
+        "download.visualstudio.microsoft.com",
+        "vscode.download.prss.microsoft.com"
       ],
       "domain_suffix": [
         "dynamics.cn",
@@ -92,19 +92,6 @@
         "dcg.microsoft.com",
         "dl.delivery.mp.microsoft.com",
         "download.windowsupdate.com",
-        "bing.com.cn",
-        "cn.bing.com",
-        "cn.bing.net",
-        "cn.mm.bing.net",
-        "ditu.live.com",
-        "r.bing.com",
-        "th.bing.com",
-        "microsoftreactor.cn",
-        "microsoftreactor.com.cn",
-        "reactorms.com.cn",
-        "microsoftnews.cn",
-        "msn.cn",
-        "xboxlive.cn",
         "21vbc.com",
         "21vbluecloud.com",
         "21vbluecloud.net",
@@ -193,7 +180,20 @@
         "azure-dns-7.cn",
         "azure-dns-8.cn",
         "azure-dns-9.cn",
-        "azure-dns-10.cn"
+        "azure-dns-10.cn",
+        "bing.com.cn",
+        "cn.bing.com",
+        "cn.bing.net",
+        "cn.mm.bing.net",
+        "ditu.live.com",
+        "r.bing.com",
+        "th.bing.com",
+        "microsoftreactor.cn",
+        "microsoftreactor.com.cn",
+        "reactorms.com.cn",
+        "microsoftnews.cn",
+        "msn.cn",
+        "xboxlive.cn"
       ]
     }
   ]
