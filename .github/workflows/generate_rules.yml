@@ -4,6 +4,12 @@ on:
   workflow_dispatch:
   schedule:
     - cron: '0 0 * * 1'
+  push:
+    branches:
+      - metadata
+    paths:
+      - 'rules/**'
+      - 'source/sing_config_template.json'
 
 jobs:
   combined-job:
@@ -51,11 +57,24 @@ jobs:
         run: |
           python ./.github/scripts/parse_sb_online_full.py
 
-      - name: Commit and push changes
+      - name: Commit, push and purge jsDelivr CDN cache
         run: |
           cd repo
           CURRENT_TIME=$(date '+%Y-%m-%d %H:%M:%S')
           git config --local user.email "13297229+QuincySx@users.noreply.github.com"
           git config --local user.name "GitHub Action"
           git add .
-          git diff --cached --quiet || git commit -m "Update rules at $CURRENT_TIME" && git push --set-upstream origin metadata
+          if ! git diff --cached --quiet; then
+            CHANGED_FILES=$(git diff --cached --name-only)
+            git commit -m "Update rules at $CURRENT_TIME"
+            git push --set-upstream origin metadata
+            for file in $CHANGED_FILES; do
+              case "$file" in
+                sing/rules/*.srs|sing/rules/*.json|rules/*.list|sing/*.json|source/*.json)
+                  echo "Purging jsDelivr cache for $file ..."
+                  curl -fsSL "https://purge.jsdelivr.net/gh/QuincySx/dotfiles@metadata/$file" || true
+                  echo ""
+                  ;;
+              esac
+            done
+          fi
