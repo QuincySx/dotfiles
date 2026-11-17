@@ -6,6 +6,7 @@
       ],
       "domain_suffix": [
         "claudeusercontent.com",
+        "claudemcpclient.com",
         "stripe.com",
         "anthropic.com",
         "claude.ai",
@@ -13,7 +14,13 @@
         "clau.de",
         "hs-analytics.net",
         "hs-scripts.com",
-        "hubspot.com"
+        "hubspot.com",
+        "adspower.com",
+        "adspower.net",
+        "statsig.com",
+        "statsigapi.net",
+        "intercom.io",
+        "intercomcdn.com"
       ]
     }
   ],

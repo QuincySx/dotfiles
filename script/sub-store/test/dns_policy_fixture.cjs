@@ -86,8 +86,7 @@ function configureDns(config, local, remote) {
     'ac-custom-direct': ['direct-first.test', 'direct-local.test'],
     'ac-openai': ['foreign-explicit.test', 'direct-first.test'],
     'geosite-lite-cn': ['domestic.test', 'domestic-v4only.test', 'domestic-v6only.test', 'claude.ai', ...googleAiDomains],
-    // Force the user-approved early routes to win over an overlapping ad rule.
-    'geosite-category-ads-all': ['claude.ai', ...hubspotDomains],
+    'geosite-category-ads-all': ['ad-blocked.test'],
     'proxy-domain-cdn': ['foreign-cdn.test', ...streamDomains, ...googleAiDomains],
     'geosite-netflix': ['netflix.test'],
     'geosite-disney': ['disney.test'],

@@ -85,11 +85,11 @@ GitHub 不再单独指定到手选节点，继续匹配微软服务等已有分�
 
 Google AI 接入 MetaCubeX 的 `google-deepmind.srs`，标签为 `geosite-google-ai`，与 OpenAI 一起使用 `🤖 GPT分流`。该规则在通用 Google、CDN 规则之前匹配；DNS 提前使用 `proxyDns`，并加入国外 AAAA/HTTPS/SVCB 过滤与已识别 IPv6 连接拒绝。Antigravity 的 `daily-cloudcode-pa.googleapis.com`、`cloudcode-pa.googleapis.com` 等模型接口因此跟随 GPT 选择，不再落到通用手选组。调整 GPT 组节点即可切换这些 Google AI 服务的业务出口；其他 Google 域名继续按原规则处理。
 
-### Claude / HubSpot 提前路由
+### 隐私/广告拦截与 Claude / HubSpot 提前路由
 
-`ac-claude` 和 `hs-analytics.net`、`hs-scripts.com`、`hubspot.com` 的路由，放在 QUIC 拒绝之后、隐私/广告规则及 Clash 模式规则之前，使用 `🤖 Claude分流`。这是用户确认的优先级：即使命中后面的广告规则或切换 Clash 模式，这些域名仍先按 Claude 路由处理。
+`🍃 应用净化分流` 与 `🛑 广告分流` 放在 QUIC 拒绝之后、所有业务分流之前；`ac-claude` 和 `hs-analytics.net`、`hs-scripts.com`、`hubspot.com` 紧随其后、位于 Clash 模式规则及通用业务规则之前，使用 `🤖 Claude分流`。
 
-地址族限制和 `resolve` 仍在这些业务路由之前。三个 HubSpot 后缀也加入 `rules/Ac-claude-proxy.list`，并同步生成 `sing/rules/Ac-claude-proxy.json` / `.srs`，使它们沿用 Claude 的 DNS 和国外 IPv4 限制。
+地址族限制和 `resolve` 仍在这些路由之前。三个 HubSpot 后缀以及 Statsig、Intercom 相关域名也加入 `rules/Ac-claude-proxy.list`，并同步更新 `sing/rules/Ac-claude-proxy.json` / `.srs`，使它们沿用 Claude 的 DNS 和国外 IPv4 限制。
 
 ## DNS 迁移边界
 

@@ -788,6 +788,19 @@
       },
       {
         "rule_set": [
+          "ac-privacy-ban",
+          "ac-scam-ban",
+          "ac-httpdns-ban",
+          "geosite-category-httpdns-cn"
+        ],
+        "outbound": "🍃 应用净化分流"
+      },
+      {
+        "rule_set": "geosite-category-ads-all",
+        "outbound": "🛑 广告分流"
+      },
+      {
+        "rule_set": [
           "ac-claude"
         ],
         "outbound": "🤖 Claude分流"
@@ -799,19 +812,6 @@
           "hubspot.com"
         ],
         "outbound": "🤖 Claude分流"
-      },
-      {
-        "rule_set": [
-          "ac-privacy-ban",
-          "ac-scam-ban",
-          "ac-httpdns-ban",
-          "geosite-category-httpdns-cn"
-        ],
-        "outbound": "🍃 应用净化分流"
-      },
-      {
-        "rule_set": "geosite-category-ads-all",
-        "outbound": "🛑 广告分流"
       },
       {
         "clash_mode": "direct",

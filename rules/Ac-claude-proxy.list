@@ -18,3 +18,9 @@ DOMAIN-SUFFIX,hubspot.com
 # AdsPower
 DOMAIN-SUFFIX,adspower.com
 DOMAIN-SUFFIX,adspower.net
+
+# Statsig & Intercom：Claude 网页版与 Claude Code 遥测/特性开关/客服组件
+DOMAIN-SUFFIX,statsig.com
+DOMAIN-SUFFIX,statsigapi.net
+DOMAIN-SUFFIX,intercom.io
+DOMAIN-SUFFIX,intercomcdn.com

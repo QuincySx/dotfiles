@@ -70,13 +70,18 @@ test('Clash API settings survive conversion without creating a different API ser
   assert(!config.services);
 });
 
-test('Claude and HubSpot business routes precede privacy, ads and mode rules', () => {
+test('privacy and ad rules precede business routes, and Claude/HubSpot precede mode rules', () => {
   const rules = template14.route.rules;
+  const resolve = rules.findIndex((rule) => rule.action === 'resolve');
+  const privacy = rules.findIndex((rule) => rule.outbound === '🍃 应用净化分流');
+  const ads = rules.findIndex((rule) => rule.outbound === '🛑 广告分流');
   const claude = rules.findIndex((rule) => rule.outbound === '🤖 Claude分流');
   const hubspot = rules.findIndex((rule) => rule.domain_suffix?.includes('hubspot.com'));
-  assert(claude > rules.findIndex((rule) => rule.action === 'resolve'));
+  assert(privacy > resolve);
+  assert.equal(ads, privacy + 1);
+  assert.equal(claude, ads + 1);
   assert.equal(hubspot, claude + 1);
-  for (const rule of rules.filter((rule) => rule.clash_mode || ['🍃 应用净化分流', '🛑 广告分流'].includes(rule.outbound))) {
+  for (const rule of rules.filter((rule) => rule.clash_mode)) {
     assert(hubspot < rules.indexOf(rule));
   }
 });
