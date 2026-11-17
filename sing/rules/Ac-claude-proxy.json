@@ -2,16 +2,30 @@
   "rules": [
     {
       "domain": [
-        "cdn.usefathom.com"
+        "cdn.usefathom.com",
+        "http-intake.logs.us5.datadoghq.com",
+        "browser-intake-us5-datadoghq.com"
       ],
       "domain_suffix": [
-        "claudeusercontent.com",
-        "claudemcpclient.com",
-        "stripe.com",
+        "ant.dev",
         "anthropic.com",
-        "claude.ai",
-        "claude.com",
+        "anthropic.team",
+        "antspace.dev",
+        "chatbotclaude.com",
         "clau.de",
+        "claude.ai",
+        "claude.app",
+        "claude.com",
+        "claude.dev",
+        "claude.new",
+        "claude.site",
+        "claudeacademy.com",
+        "claudemcpclient.com",
+        "claudemcpcontent.com",
+        "claudepages.dev",
+        "claudestudio.com",
+        "claudeusercontent.com",
+        "stripe.com",
         "hs-analytics.net",
         "hs-scripts.com",
         "hubspot.com",

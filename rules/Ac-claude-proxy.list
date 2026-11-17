@@ -1,14 +1,26 @@
 # Anthropic Claude
 DOMAIN,cdn.usefathom.com
-DOMAIN-SUFFIX,claudeusercontent.com
-DOMAIN-SUFFIX,claudemcpclient.com
-DOMAIN-SUFFIX,stripe.com
+DOMAIN,http-intake.logs.us5.datadoghq.com
+DOMAIN,browser-intake-us5-datadoghq.com
+DOMAIN-SUFFIX,ant.dev
 DOMAIN-SUFFIX,anthropic.com
-DOMAIN-SUFFIX,claude.ai
-DOMAIN-SUFFIX,claude.com
-# For the record, I don't believe Claude will use Short URLs to geo blocking.
-# However, since there is some conspiracy theories surrounding it, I will include it.
+DOMAIN-SUFFIX,anthropic.team
+DOMAIN-SUFFIX,antspace.dev
+DOMAIN-SUFFIX,chatbotclaude.com
 DOMAIN-SUFFIX,clau.de
+DOMAIN-SUFFIX,claude.ai
+DOMAIN-SUFFIX,claude.app
+DOMAIN-SUFFIX,claude.com
+DOMAIN-SUFFIX,claude.dev
+DOMAIN-SUFFIX,claude.new
+DOMAIN-SUFFIX,claude.site
+DOMAIN-SUFFIX,claudeacademy.com
+DOMAIN-SUFFIX,claudemcpclient.com
+DOMAIN-SUFFIX,claudemcpcontent.com
+DOMAIN-SUFFIX,claudepages.dev
+DOMAIN-SUFFIX,claudestudio.com
+DOMAIN-SUFFIX,claudeusercontent.com
+DOMAIN-SUFFIX,stripe.com
 
 # HubSpot：用户指定与 Claude 使用同一出口
 DOMAIN-SUFFIX,hs-analytics.net
