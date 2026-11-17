@@ -4,12 +4,6 @@ on:
   workflow_dispatch:
   schedule:
     - cron: '0 0 * * 1'
-  push:
-    branches:
-      - metadata
-    paths:
-      - 'rules/**'
-      - 'source/sing_config_template.json'
 
 jobs:
   combined-job:
@@ -65,16 +59,12 @@ jobs:
           git config --local user.name "GitHub Action"
           git add .
           if ! git diff --cached --quiet; then
-            CHANGED_FILES=$(git diff --cached --name-only)
+            CHANGED_SRS=$(git diff --cached --name-only -- 'sing/rules/*.srs' 'sing/rules/**/*.srs')
             git commit -m "Update rules at $CURRENT_TIME"
             git push --set-upstream origin metadata
-            for file in $CHANGED_FILES; do
-              case "$file" in
-                sing/rules/*.srs|sing/rules/*.json|rules/*.list|sing/*.json|source/*.json)
-                  echo "Purging jsDelivr cache for $file ..."
-                  curl -fsSL "https://purge.jsdelivr.net/gh/QuincySx/dotfiles@metadata/$file" || true
-                  echo ""
-                  ;;
-              esac
+            for file in $CHANGED_SRS; do
+              echo "Purging jsDelivr cache for $file ..."
+              curl -fsSL "https://purge.jsdelivr.net/gh/QuincySx/dotfiles@metadata/$file" || true
+              echo ""
             done
           fi
