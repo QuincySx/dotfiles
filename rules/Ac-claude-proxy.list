@@ -2,6 +2,8 @@
 DOMAIN,cdn.usefathom.com
 DOMAIN,http-intake.logs.us5.datadoghq.com
 DOMAIN,browser-intake-us5-datadoghq.com
+DOMAIN,anthropic.auth0.com
+DOMAIN,anthropic-com.ghost.io
 DOMAIN-SUFFIX,ant.dev
 DOMAIN-SUFFIX,anthropic.com
 DOMAIN-SUFFIX,anthropic.team
@@ -21,6 +23,15 @@ DOMAIN-SUFFIX,claudepages.dev
 DOMAIN-SUFFIX,claudestudio.com
 DOMAIN-SUFFIX,claudeusercontent.com
 DOMAIN-SUFFIX,stripe.com
+
+# KYC 与反欺诈 / 监控兜底
+DOMAIN-SUFFIX,withpersona.com
+DOMAIN-SUFFIX,frompersona.com
+DOMAIN-KEYWORD,datadog
+DOMAIN-KEYWORD,sift
+
+# Anthropic 自有 IP 段兜底
+IP-CIDR,160.79.104.0/21,no-resolve
 
 # HubSpot：用户指定与 Claude 使用同一出口
 DOMAIN-SUFFIX,hs-analytics.net

@@ -4,7 +4,13 @@
       "domain": [
         "cdn.usefathom.com",
         "http-intake.logs.us5.datadoghq.com",
-        "browser-intake-us5-datadoghq.com"
+        "browser-intake-us5-datadoghq.com",
+        "anthropic.auth0.com",
+        "anthropic-com.ghost.io"
+      ],
+      "domain_keyword": [
+        "datadog",
+        "sift"
       ],
       "domain_suffix": [
         "ant.dev",
@@ -26,6 +32,8 @@
         "claudestudio.com",
         "claudeusercontent.com",
         "stripe.com",
+        "withpersona.com",
+        "frompersona.com",
         "hs-analytics.net",
         "hs-scripts.com",
         "hubspot.com",
@@ -35,6 +43,9 @@
         "statsigapi.net",
         "intercom.io",
         "intercomcdn.com"
+      ],
+      "ip_cidr": [
+        "160.79.104.0/21"
       ]
     }
   ],
