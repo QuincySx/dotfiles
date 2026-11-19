@@ -5,7 +5,7 @@
   },
   "experimental": {
     "clash_api": {
-      "external_controller": "0.0.0.0:9090",
+      "external_controller": "[::]:9090",
       "external_ui": "ui",
       "secret": "123456",
       "external_ui_download_url": "https://edgeone.gh-proxy.com/github.com/MetaCubeX/metacubexd/archive/gh-pages.zip",
@@ -1259,7 +1259,7 @@
     {
       "type": "api",
       "tag": "api-service",
-      "listen": "0.0.0.0",
+      "listen": "::",
       "listen_port": 9099,
       "secret": "123456",
       "access_control_allow_origin": [
