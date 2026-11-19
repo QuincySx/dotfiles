@@ -137,13 +137,13 @@ def convert_list_to_json(file_path):
                     current_rule.setdefault("domain_suffix", []).append(value)
                 elif rule_type == "DOMAIN":
                     current_rule.setdefault("domain", []).append(value)
-                elif rule_type == "IP-CIDR":
+                elif rule_type in ("IP-CIDR", "IP-CIDR6"):
                     current_rule.setdefault("ip_cidr", []).append(value)
                 elif rule_type == "DOMAIN-REGEX":
                     current_rule.setdefault("domain_regex", []).append(value)
             if len(parts) == 3:
                 rule_type, value, flag = parts
-                if rule_type == "IP-CIDR":
+                if rule_type in ("IP-CIDR", "IP-CIDR6"):
                     current_rule.setdefault("ip_cidr", []).append(value)
     if current_rule:
         rules.append(current_rule)
