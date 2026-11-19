@@ -66,7 +66,7 @@ TUN 的国内 IP 排除早于核心业务规则：命中排除集合的连接按
 - `experimental.clash_api.external_ui = /etc/momo/run/ui`
 - `services[type=api].dashboard.path = /etc/momo/run/dashboard`
 
-同时开启 `experimental.clash_api`（`9090` 端口，MetaCubeXD）与原生 `services[type=api]`（`9091` 端口，sing-box 1.14 Dashboard），端口与静态面板目录隔离、互不冲突。
+同时开启 `experimental.clash_api`（`9090` 端口，MetaCubeXD）与原生 `services[type=api]`（`9099` 端口，sing-box 1.14 Dashboard），端口与静态面板目录隔离、互不冲突。
 
 ### 流媒体与自建节点选择
 

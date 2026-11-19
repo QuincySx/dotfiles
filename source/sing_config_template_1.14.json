@@ -1260,7 +1260,7 @@
       "type": "api",
       "tag": "api-service",
       "listen": "0.0.0.0",
-      "listen_port": 9091,
+      "listen_port": 9099,
       "secret": "123456",
       "access_control_allow_origin": [
         "*"

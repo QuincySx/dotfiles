@@ -71,7 +71,7 @@ test('Clash API and native 1.14 API service coexist on separate ports', async ()
   const api = config.services?.find((service) => service.type === 'api');
   assert(api);
   assert.equal(api.listen, '0.0.0.0');
-  assert.equal(api.listen_port, 9091);
+  assert.equal(api.listen_port, 9099);
 });
 
 test('privacy and ad rules precede business routes, and Claude/HubSpot precede mode rules', () => {
@@ -117,7 +117,7 @@ for (const script of scripts) {
     assert.equal(config.experimental.cache_file.path, '/etc/momo/run/cache.db');
     assert.equal(config.experimental.clash_api.external_ui, '/etc/momo/run/ui');
     const api = config.services?.find((service) => service.type === 'api');
-    assert.equal(api?.listen_port, 9091);
+    assert.equal(api?.listen_port, 9099);
     assert.equal(api?.dashboard?.path, '/etc/momo/run/dashboard');
     const tun = config.inbounds[0];
     assert.equal(tun.interface_name, 'momo');
@@ -133,7 +133,7 @@ for (const version of ['1.14', '1.14.0', '1.14.4', 'v1.14.4', '1.14.4-beta.1']) 
   test(`${version} generates the 1.14 configuration`, async () => {
     const { config } = await convert({ args: { v: version, storagePath: 'momo' } });
     assert(config.experimental.clash_api);
-    assert.equal(config.services?.find((service) => service.type === 'api')?.listen_port, 9091);
+    assert.equal(config.services?.find((service) => service.type === 'api')?.listen_port, 9099);
     assert(config.http_clients);
     assert.equal(config.experimental.cache_file.store_dns, true);
     assertReferences(config);
