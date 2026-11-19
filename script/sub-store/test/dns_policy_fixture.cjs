@@ -47,7 +47,7 @@ async function upstream(t, local, loopback = false) {
       domestic ? '20010db8000100000000000000000025' : '20010db8000200000000000000000025', 'hex');
     let data;
     if (type === 1 && !name.includes('-v6only.')) {
-      const lastOctet = name === 'unknown-abroad.test' || (!local && name === 'unknown-cn.test') ? 2 : 1;
+      const lastOctet = name === 'unknown-abroad.test' ? 2 : 1;
       data = Buffer.from(loopback ? [127, 0, 0, lastOctet] : domestic ? [203, 0, 113, 25] : [198, 51, 100, 25]);
     }
     if (type === 28 && !name.includes('-v4only.')) data = ipv6;
@@ -179,13 +179,13 @@ exports.checkDns = async function checkDns(t, binary, config) {
     assert(!local.requests.some((query) => query.name === name), `${name}: a domestic overlap must not capture Google AI DNS`);
   }
   for (const name of ['domestic.test', 'direct-local.test', 'unknown-cn.test', 'unknown-foreign.test']) {
-    const domestic = name !== 'unknown-foreign.test';
+    const domestic = name === 'domestic.test' || name === 'direct-local.test';
     assert.deepEqual(await resolver.resolve4(name), [domestic ? '203.0.113.25' : '198.51.100.25']);
     assert.deepEqual(await resolver.resolve6(name), [domestic ? '2001:db8:1::25' : '2001:db8:2::25'],
       `${name}: IPv6 must remain available`);
   }
-  assert.equal(local.requests.filter((query) => query.name === 'unknown-cn.test' && query.type === 1).length, 1,
-    'an accepted evaluated response must be reused without another local query, even with caching disabled');
+  assert(!local.requests.some((query) => query.name === 'unknown-cn.test' || query.name === 'unknown-foreign.test'),
+    'unclassified domains must not leak DNS queries to localDns');
 };
 
 exports.checkConnections = async function checkConnections(t, binary, config) {
@@ -342,9 +342,9 @@ exports.checkFallback = async function checkFallback(t, binary, config) {
     assert.equal(stdout, 'fixture-ok', `${name}\n${logs()}`);
     assert.equal(targets.length > before, expectProxy, `${name}: incorrect proxy/direct decision\n${logs()}`);
   }
-  assert(local.requests.some((query) => query.name === 'unknown-cn.test' && query.type === 1));
-  assert(!remote.requests.some((query) => query.name === 'unknown-cn.test' && query.type === 1),
-    'a small domestic domain must retain the evaluated domestic answer');
+  assert(remote.requests.some((query) => query.name === 'unknown-cn.test' && query.type === 1));
+  assert(!local.requests.some((query) => query.name === 'unknown-cn.test' && query.type === 1),
+    'unclassified domains must resolve via proxyDns and still bypass via geoip-cn when the resolved IP is domestic');
 };
 
 exports.checkClashApi = async function checkClashApi(t, binary, config) {

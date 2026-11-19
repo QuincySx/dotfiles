@@ -159,17 +159,6 @@
           "geosite-cn"
         ],
         "server": "localDns"
-      },
-      {
-        "rule_set": "geosite-geolocation-!cn",
-        "invert": true,
-        "action": "evaluate",
-        "server": "localDns"
-      },
-      {
-        "rule_set": "geoip-cn",
-        "match_response": true,
-        "action": "respond"
       }
     ],
     "strategy": "prefer_ipv4",

@@ -48,7 +48,7 @@
 
 国内常用连接的性能优先：模板和 `router-bypass` 预设保留 `route_exclude_address_set: ["geoip-cn"]`。在 Linux 的自动路由/重定向场景下，命中的国内 IP 直接绕过核心，不必先经过全局 `sniff`。不为小众域名的识别让所有国内 TCP 都进入核心。
 
-小众域名只在 DNS 阶段增加判断：非明确国外域名由 `localDns` 执行 `evaluate`；响应命中 `geoip-cn` 时用 `respond` 直接采用这份结果，避免重复查询；否则继续 `proxyDns`。仍进入核心的连接保留原有业务顺序，末尾以“`geoip-cn` 且不属于 `geosite-geolocation-!cn`”作条件直连兜底，不再添加前置无条件 GeoIP 路由。
+未命中已知国内域名规则（`geosite-lite-cn`、`geosite-cn` 等）的小众或未知域名，不再通过 `localDns` 执行 `evaluate` 试查，直接落入 `final: proxyDns`，彻底避免未知海外域名及 DNS 泄露检测域名向国内 DNS 发起查询。仍进入核心的连接保留原有业务顺序，末尾以“`geoip-cn` 且不属于 `geosite-geolocation-!cn`”作条件直连兜底，小众国内单 IP 域名经 `proxyDns` 解析出国内 IP 后依然走直连（且结果由 `store_dns` 缓存）。
 
 TUN 的国内 IP 排除早于核心业务规则：命中排除集合的连接按国内 IP 优先直连，即使域名同时出现在后面的代理业务名单里也不会再执行那些规则。核心内的业务优先级只适用于未被 TUN 排除的连接。`mac` / `mobile` 预设继续清空该排除集合。
 
