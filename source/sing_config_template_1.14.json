@@ -1254,5 +1254,24 @@
         "strategy": "ipv4_only"
       }
     }
+  ],
+  "services": [
+    {
+      "type": "api",
+      "tag": "api-service",
+      "listen": "0.0.0.0",
+      "listen_port": 9091,
+      "secret": "123456",
+      "access_control_allow_origin": [
+        "*"
+      ],
+      "access_control_allow_private_network": true,
+      "dashboard": {
+        "enabled": true,
+        "path": "dashboard",
+        "download_url": "https://edgeone.gh-proxy.com/github.com/SagerNet/sing-box-dashboard/archive/refs/heads/gh-pages.zip",
+        "update_interval": "1d"
+      }
+    }
   ]
 }

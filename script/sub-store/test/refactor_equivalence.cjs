@@ -291,12 +291,16 @@ const unsupportedInputs = new Set([
   'node-array-without-template', 'fallback-template-without-inbounds',
   'api-path-precedence', 'multiple-api-services',
 ]);
-const unsupportedPrefixes = ['api-listener-', 'api-port-', 'legacy-cache-', 'cache-precedence-'];
+const unsupportedPrefixes = [
+  'api-listener-', 'api-port-', 'legacy-cache-', 'cache-precedence-',
+  'storage-', 'path-',
+];
 // 这些旧结果正是本次要修复的行为，改由独立的节点、DNS 和参数测试断言。
 const correctedScenarios = new Set([
   'duplicate-node-tags', 'same-airport-and-self-tag', 'template-node-tag-collision',
   'named-file-multiple', 'named-file-custom-bundle',
   'dns-slice-order', 'multiple-dns-slices', 'custom-append-address',
+  'custom-paths',
 ]);
 const currentTemplateScenarios = scenarios.filter((scenario) =>
   !unsupportedInputs.has(scenario.name) && !unsupportedPrefixes.some((prefix) => scenario.name.startsWith(prefix)) &&

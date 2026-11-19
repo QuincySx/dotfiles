@@ -64,8 +64,9 @@ TUN 的国内 IP 排除早于核心业务规则：命中排除集合的连接按
 
 - `experimental.cache_file.path = /etc/momo/run/cache.db`
 - `experimental.clash_api.external_ui = /etc/momo/run/ui`
+- `services[type=api].dashboard.path = /etc/momo/run/dashboard`
 
-继续使用 `experimental.clash_api` 和 MetaCubeXD。脚本保留模板的 Clash API 配置，不再自动改成 `services[type=api]`。1.14 的新 API 不是使用 Clash API 的前提。
+同时开启 `experimental.clash_api`（`9090` 端口，MetaCubeXD）与原生 `services[type=api]`（`9091` 端口，sing-box 1.14 Dashboard），端口与静态面板目录隔离、互不冲突。
 
 ### 流媒体与自建节点选择
 

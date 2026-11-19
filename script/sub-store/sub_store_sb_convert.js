@@ -316,6 +316,9 @@ if (storage) {
   directory = directory.replace(/\/+$/, "");
   cachePath ||= `${directory}/cache.db`;
   externalUi ||= `${directory}/ui`;
+  for (const service of config.services || []) {
+    if (service.type === "api" && service.dashboard) service.dashboard.path = `${directory}/dashboard`;
+  }
 }
 if (cachePath) {
   config.experimental ||= {};
