@@ -127,13 +127,6 @@
       {
         "action": "route",
         "rule_set": [
-          "ac-custom-direct"
-        ],
-        "server": "localDns"
-      },
-      {
-        "action": "route",
-        "rule_set": [
           "geosite-lite-cn",
           "apple-cn",
           "apple-cn-cdn",
