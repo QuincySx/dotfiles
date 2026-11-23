@@ -42,7 +42,7 @@ async function upstream(t, local, loopback = false) {
     const type = query.readUInt16BE(++offset);
     const question = query.subarray(12, offset + 4);
     requests.push({ name, type });
-    const domestic = local && /^(domestic|direct-first|direct-local|unknown-cn)\./.test(name);
+    const domestic = /^(domestic|direct-first|direct-local|unknown-cn)\./.test(name);
     const ipv6 = Buffer.from(loopback ? '00000000000000000000000000000001' :
       domestic ? '20010db8000100000000000000000025' : '20010db8000200000000000000000025', 'hex');
     let data;
@@ -178,11 +178,18 @@ exports.checkDns = async function checkDns(t, binary, config) {
     assert(remote.requests.some((query) => query.name === name && query.type === 1), `${name}: Google AI must use proxyDns`);
     assert(!local.requests.some((query) => query.name === name), `${name}: a domestic overlap must not capture Google AI DNS`);
   }
-  for (const name of ['domestic.test', 'direct-local.test', 'unknown-cn.test', 'unknown-foreign.test']) {
-    const domestic = name === 'domestic.test' || name === 'direct-local.test';
-    assert.deepEqual(await resolver.resolve4(name), [domestic ? '203.0.113.25' : '198.51.100.25']);
-    assert.deepEqual(await resolver.resolve6(name), [domestic ? '2001:db8:1::25' : '2001:db8:2::25'],
-      `${name}: IPv6 must remain available`);
+  for (const name of ['domestic.test', 'direct-local.test', 'unknown-cn.test']) {
+    assert.deepEqual(await resolver.resolve4(name), ['203.0.113.25']);
+    assert.deepEqual(await resolver.resolve6(name), ['2001:db8:1::25'],
+      `${name}: domestic IPv6 must remain available`);
+  }
+  assert.deepEqual(await resolver.resolve4('unknown-foreign.test'), ['198.51.100.25']);
+  for (const type of ['AAAA', 'TYPE65', 'TYPE64']) {
+    const { stdout } = await run('dig', ['@127.0.0.1', '-p', String(port), 'unknown-foreign.test', type,
+      '+noall', '+comments', '+answer', '+tries=1', '+time=1'], { timeout: 5000 });
+    assert.match(stdout, /status: NOERROR/, `unknown-foreign.test ${type}: ${stdout}`);
+    const answers = stdout.split(/\r?\n/).filter((line) => line.trim() && !line.startsWith(';'));
+    assert.deepEqual(answers, [], `unknown-foreign.test ${type} must not return foreign IPv6 or hint`);
   }
   assert(!local.requests.some((query) => query.name === 'unknown-cn.test' || query.name === 'unknown-foreign.test'),
     'unclassified domains must not leak DNS queries to localDns');
@@ -266,9 +273,10 @@ exports.checkConnections = async function checkConnections(t, binary, config) {
   for (const name of ['domestic.test', 'domestic-v4only.test', 'unknown.test', 'unknown-v4only.test']) {
     assert.equal(await request(name), 'IPv4', `${name}: prefer IPv4 when both are reachable\n${logs()}`);
   }
-  for (const name of ['domestic-v6only.test', 'unknown-v6only.test']) {
-    assert.equal(await request(name), 'IPv6', `${name}: IPv6-only destinations must work\n${logs()}`);
+  for (const name of ['domestic-v6only.test']) {
+    assert.equal(await request(name), 'IPv6', `${name}: domestic IPv6-only destinations must work\n${logs()}`);
   }
+  await assert.rejects(request('unknown-v6only.test'), 'unclassified foreign IPv6-only targets must not return foreign IPv6');
   const ipv6Request = async (name) => (await run('curl', ['--silent', '--show-error', '--max-time', '4', '--noproxy', '',
     '--proxy', `socks5h://127.0.0.1:${port}`, '-H', `Host: ${name}`, `http://[::1]:${webPort}/`], { timeout: 6000 })).stdout;
   await assert.rejects(ipv6Request('foreign-explicit.test'), 'cached IPv6 with a known foreign HTTP host must be rejected');
@@ -283,7 +291,7 @@ exports.checkConnections = async function checkConnections(t, binary, config) {
   await assert.rejects(request('foreign-v6only.test'), 'known foreign IPv6-only targets must fail closed');
   await closeServer(v4);
   assert.equal(await request('domestic.test'), 'IPv6', `domestic IPv4 failure must fall back to IPv6\n${logs()}`);
-  assert.equal(await request('unknown.test'), 'IPv6', `unknown IPv4 failure must fall back to IPv6\n${logs()}`);
+  await assert.rejects(request('unknown.test'), 'unclassified foreign IPv4 failure must not fall back to foreign IPv6');
   const before = targets.length;
   await assert.rejects(request('foreign-explicit.test'), 'foreign IPv4 failure must never fall back to IPv6');
   assert(targets.slice(before).every((host) => net.isIP(host) === 4), 'foreign fallback leaked an IPv6 destination');

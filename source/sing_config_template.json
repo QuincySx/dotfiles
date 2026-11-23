@@ -159,6 +159,40 @@
           "geosite-cn"
         ],
         "server": "localDns"
+      },
+      {
+        "query_type": [
+          "HTTPS",
+          "SVCB"
+        ],
+        "action": "predefined",
+        "rcode": "NOERROR",
+        "answer": []
+      },
+      {
+        "query_type": [
+          "AAAA"
+        ],
+        "action": "evaluate",
+        "server": "proxyDns"
+      },
+      {
+        "query_type": [
+          "AAAA"
+        ],
+        "rule_set": [
+          "geoip-cn"
+        ],
+        "match_response": true,
+        "action": "respond"
+      },
+      {
+        "query_type": [
+          "AAAA"
+        ],
+        "action": "predefined",
+        "rcode": "NOERROR",
+        "answer": []
       }
     ],
     "strategy": "prefer_ipv4",

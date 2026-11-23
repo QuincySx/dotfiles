@@ -336,7 +336,7 @@ if (domains.length && Array.isArray(config.route?.rules)) {
 const clientSubnet = custom.clientSubnet || args.clientSubnet;
 if (clientSubnet) {
   for (const rule of config.dns?.rules || []) {
-    if (rule.client_subnet !== undefined || ((rule.action || "route") === "route" && rule.server === "proxyDns")) {
+    if (rule.client_subnet !== undefined || (["route", "evaluate"].includes(rule.action || "route") && rule.server === "proxyDns")) {
       rule.client_subnet = clientSubnet;
     }
   }

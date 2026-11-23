@@ -300,7 +300,7 @@ const correctedScenarios = new Set([
   'duplicate-node-tags', 'same-airport-and-self-tag', 'template-node-tag-collision',
   'named-file-multiple', 'named-file-custom-bundle',
   'dns-slice-order', 'multiple-dns-slices', 'custom-append-address',
-  'custom-paths',
+  'custom-paths', 'ecs', 'custom-ecs-precedence',
 ]);
 const currentTemplateScenarios = scenarios.filter((scenario) =>
   !unsupportedInputs.has(scenario.name) && !unsupportedPrefixes.some((prefix) => scenario.name.startsWith(prefix)) &&

@@ -99,10 +99,11 @@ Google AI 接入 MetaCubeX 的 `google-deepmind.srs`，标签为 `geosite-google
 - 配套 1.14 模板使用新 DNS 匹配方式，不含 legacy rule strategy。
 - 将含 legacy strategy 的规则切片混入新模式时，转换器明确报错，避免悄悄改变解析语义。
 
-### 地址族限制：只限制明确国外域名
+### 地址族限制：国内放行双栈，海外一律 IPv4
 
 - **明确国外规则**：OpenAI、Claude、代理 CDN、`geosite-geolocation-!cn` 及国外应用名单统一放入第一条 DNS 过滤规则，对 AAAA、HTTPS、SVCB 查询返回 `NOERROR` 空响应，避免 IPv6 地址和 `ipv6hint`。IPv4 不可用时失败，不回退到 IPv6。
-- **其他域名**：不增加地址族限制，保留 A、AAAA 双栈。沿用现有默认 `prefer_ipv4` 和 IPv6 回退；走代理兜底不代表该域名属于“明确国外”。
+- **明确大陆规则**：命中 `ac-custom-direct`、`geosite-lite-cn`、`ac-china`、`apple-cn`、`microsoft-cn-cdn`、`ac-game-download`、`geosite-cn` 的域名直接走 `localDns`，保留 A、AAAA、HTTPS 双栈直连。
+- **未分类域名**：在 `geosite-cn` 之后拦截 `HTTPS/SVCB`，并对 `AAAA` 通过 `proxyDns` 执行 `evaluate` 试查：若解析结果为国内 IPv6（命中 `geoip-cn`，如家宽纯 IPv6 DDNS / 小众国内站），则 `respond` 自动放行；若为海外 IPv6，则返回 `NOERROR` 空响应，强制回落至 IPv4 走代理。全程不向 `localDns` 发起查询，避免 DNS 泄露。
 
 经本配置处理的 DNS 查询首先执行国外 IPv6 过滤，不排除国内或自定义直连名单的重叠域名。正常 DNS 查询中，OpenAI 和 Claude 同组提前使用 `proxyDns`，不会落到后面的国内规则。后续连接先受 TUN 的国内 IP 排除处理，其余才进入核心选择业务出口。
 
