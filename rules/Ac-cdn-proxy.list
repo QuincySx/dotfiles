@@ -6,7 +6,7 @@ DOMAIN-SUFFIX,cloudflare-ech.com
 DOMAIN-SUFFIX,larksuitecdn.com
 DOMAIN-KEYWORD,-cdn.coze.com
 
-# Container, Virtualization & Package Toolchains (Not in skk download.srs)
+# Container, Virtualization & Package Toolchains
 DOMAIN-SUFFIX,docker.com
 DOMAIN-SUFFIX,docker.io
 DOMAIN-SUFFIX,npmjs.org
@@ -14,6 +14,23 @@ DOMAIN-SUFFIX,npmjs.com
 DOMAIN-SUFFIX,rust-lang.org
 DOMAIN-SUFFIX,orbstack.dev
 DOMAIN-SUFFIX,proxmox.com
+DOMAIN,cdn.azul.com
+DOMAIN,codeload.github.com
+DOMAIN,proxy.golang.org
+DOMAIN,sum.golang.org
+DOMAIN,index.golang.org
+DOMAIN,google.golang.org
+DOMAIN,repo1.maven.org
+DOMAIN,repo.gradle.org
+DOMAIN,rubygems.org
+DOMAIN,index.rubygems.org
+DOMAIN,dl.tailscale.com
+DOMAIN,pkgs.tailscale.com
+DOMAIN,artifacts.nixos.org
+DOMAIN,packagecloud.io
+DOMAIN,cdn.cocoapods.org
+DOMAIN,deb.nodesource.com
+DOMAIN,binaries.prisma.sh
 
 # AI Model & Local LLM Tool Downloads (Bulk Downloads)
 DOMAIN-SUFFIX,hf.co
