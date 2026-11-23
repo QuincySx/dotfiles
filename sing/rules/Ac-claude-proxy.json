@@ -8,10 +8,6 @@
         "anthropic.auth0.com",
         "anthropic-com.ghost.io"
       ],
-      "domain_keyword": [
-        "datadog",
-        "sift"
-      ],
       "domain_suffix": [
         "ant.dev",
         "anthropic.com",
@@ -43,6 +39,10 @@
         "statsigapi.net",
         "intercom.io",
         "intercomcdn.com"
+      ],
+      "domain_keyword": [
+        "datadog",
+        "sift"
       ],
       "ip_cidr": [
         "160.79.104.0/21",
