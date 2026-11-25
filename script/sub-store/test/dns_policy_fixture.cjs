@@ -80,7 +80,7 @@ function configureDns(config, local, remote) {
   config.experimental.cache_file = { enabled: false };
   config.dns.servers = config.dns.servers.map((server) => server.type === 'hosts' ? server : {
     type: 'udp', tag: server.tag, server: '127.0.0.1',
-    server_port: server.tag === 'proxyDns' ? remote.port : local.port,
+    server_port: ['proxyDns', 'aiDns'].includes(server.tag) ? remote.port : local.port,
   });
   const fixtureDomains = {
     'ac-custom-direct': ['direct-first.test', 'direct-local.test'],

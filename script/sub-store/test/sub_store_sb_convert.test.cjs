@@ -104,8 +104,12 @@ test('bootstrap uses IP-addressed direct DoH, without UDP/QUIC/domain recursion'
     const remote = template.dns.servers.find((item) => item.tag === 'proxyDns');
     assert.equal(remote.server, '8.8.8.8');
     assert.equal(remote.tls.server_name, 'dns.google');
-    assert.equal(remote.detour, '🚀 手选节点');
-    assert(!template.outbounds.some((outbound) => outbound.tag === '⚡ DNS 分流'));
+    assert.equal(remote.detour, '⚡ DNS 分流');
+    const aiDns = template.dns.servers.find((item) => item.tag === 'aiDns');
+    assert.equal(aiDns.server, '8.8.8.8');
+    assert.equal(aiDns.tls.server_name, 'dns.google');
+    assert.equal(aiDns.detour, '🤖 Claude分流');
+    assert(template.outbounds.some((outbound) => outbound.tag === '⚡ DNS 分流'));
   }
 });
 
@@ -319,7 +323,7 @@ test('Google AI uses GPT with proxy DNS and explicit foreign family limits', asy
     assert(config.route.rules.indexOf(gpt) < config.route.rules.indexOf(rule));
   }
   assert(config.dns.rules[0].rule_set.includes('geosite-google-ai'));
-  const dns = config.dns.rules.find((rule) => rule.server === 'proxyDns' && rule.rule_set?.includes('geosite-google-ai'));
+  const dns = config.dns.rules.find((rule) => rule.server === 'aiDns' && rule.rule_set?.includes('geosite-google-ai'));
   assert(dns);
   assert(config.route.rules.some((rule) => rule.action === 'reject' && rule.rules?.some((condition) => condition.rule_set?.includes('geosite-google-ai'))));
   assertReferences(config);
@@ -336,12 +340,16 @@ test('streaming lists all JP/HK/SG nodes directly and removes the separate Netfl
     proxies: [...regional, ...excluded].map((tag) => ({ ...proxy, tag })), files: [custom],
   });
   const media = config.outbounds.find((outbound) => outbound.tag === '🎥 流媒体分流');
-  for (const tag of [...regional, ...custom.map((node) => node.tag), '🏴☠️ 自建节点']) {
-    assert(media.outbounds.includes(tag), `missing streaming option ${tag}`);
+  const dnsSelector = config.outbounds.find((outbound) => outbound.tag === '⚡ DNS 分流');
+  for (const group of [media, dnsSelector]) {
+    for (const tag of [...regional, ...custom.map((node) => node.tag), '🏴☠️ 自建节点']) {
+      assert(group.outbounds.includes(tag), `${group.tag}: missing option ${tag}`);
+    }
+    for (const tag of excluded) assert(!group.outbounds.includes(tag), `${group.tag}: unexpected node ${tag}`);
+    assert.equal(new Set(group.outbounds).size, group.outbounds.length);
   }
-  for (const tag of excluded) assert(!media.outbounds.includes(tag), `unexpected streaming node ${tag}`);
-  assert.equal(new Set(media.outbounds).size, media.outbounds.length);
   assert.equal(media.default, '🚀 手选节点');
+  assert.equal(dnsSelector.default, '🚀 手选节点');
   assert(!JSON.stringify(config).includes('🎥 奈飞节点'));
   for (const [groupTag, unexpected] of [
     ['🇸🇬 狮城节点', ['USGateway 01', 'ASGARD 01']],

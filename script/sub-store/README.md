@@ -7,9 +7,9 @@
 ### 临时 DNS 方案
 
 - `localDns` / `resolverDns`：直连 AliDNS DoH，连接 IP `223.5.5.5`，TLS 名称 `dns.alidns.com`。
-- `proxyDns`：Google DoH，连接 IP `8.8.8.8`，TLS 名称 `dns.google`，经 `🚀 手选节点`。
+- `proxyDns`：Google DoH，连接 IP `8.8.8.8`，TLS 名称 `dns.google`，经独立选择组 `⚡ DNS 分流`（默认 `🚀 手选节点`，包含自建、常规地区分组及香港/日本/新加坡单节点）。
+- `aiDns`：Google DoH，连接 IP `8.8.8.8`，TLS 名称 `dns.google`，经 `🤖 Claude分流`，专供 OpenAI、Google AI 与 Claude 使用，确保 AI DNS 始终走美/日支持地区。
 - 节点拨号的默认引导解析：`resolverDns`，`ipv4_only`。这不是全局禁用业务 IPv6。
-- 移除后来新增的独立 `⚡ DNS 分流`，恢复版本拆分前远程 DNS 跟随手选组的出口关系。
 
 这是为避开 UDP/53 引导和 DoQ 启动依赖而采用的**应急方案**，不是 sing-box 1.14 强制要求，也不代表已经证明旧 DoQ 不可用。域名寻址、DoQ、DNS 出口独立性等长期需求另行讨论。
 
